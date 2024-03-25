@@ -1,0 +1,30 @@
+[project]
+
+name = "nbconf-run"
+version = "1.0"
+requires-python = ">=3.5"
+authors = [
+	{ name = "Kovalit31", email = "nonecone20@gmail.com" }
+]
+description = "Runner for New Build CONFigurator"
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = [
+	"build",
+	"build-system",
+	"configuration",
+	"shell"
+]
+
+classifiers = [
+	"Environment :: Console",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+	"Topic :: Software Development :: Build Tools"
+]
+
+[project.urls]
+repository = "https://github.com/Kovalit31/python-nbconf"
+
+[project.scripts]
+nbconf = "nbconf:main"
