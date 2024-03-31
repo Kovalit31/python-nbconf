@@ -6,7 +6,10 @@ from .core import runtime
 from .core import language
 from .core import conf
 
+from .lib import fs
+
 import os
+import sys
 import argparse
 
 def _parse() -> argparse.Namespace:
@@ -27,6 +30,7 @@ def _main(args: argparse.Namespace) -> None:
     _runtime._variables["CONF"] = _runtime._variables["PWD"] if args.config is None else args.config
     _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"))
     _runtime._import_mods(conf.get_conf(_runtime,"modules"))
+    _runtime._variables["DEBUG"] = args.debug
     if args.config is None and args.FILE is None:
         while True:
             try:
@@ -35,6 +39,10 @@ def _main(args: argparse.Namespace) -> None:
                 print()
                 continue
             runtime.run(_runtime, _cmds)
+    if args.FILE is not None:
+        script = "".join(fs.File(args.FILE, touch=False).read().unwrap())
+        runtime.run(_runtime, script)
+        sys.exit()
     runtime.run(_runtime, "hello_world -- no_err no_msg")
 #     print((a :=language.lex("hello \"?world?\" (?cat?) ?(cat)? # jmp_rel 2; hello -- jmp_rel 2")), (b:=language.pregenerate(a)), language.generate(runtime.RuntimeData(), b[1]))
 

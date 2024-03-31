@@ -198,11 +198,15 @@ def generate(runtime: RuntimeData, cmd: list[list[list[list[str]]]]) -> list[lis
             var = False
             vardata = ""
             for _, t in enumerate(s):
+                print(t)
                 if t[0] == "VARIABLE":
+                    print(var)
                     if var:
+                        print(vardata)
                         if vardata.startswith("(") and vardata.endswith(")"):
-                            vardata = vardata.strip("()") 
-                            data = run(runtime, vardata)
+                            _vardata = vardata[1:-1]
+                            printf(str(vardata) + str(_vardata), level='i')
+                            data = run(runtime, _vardata)
                             generated[ppos][-1] += str(data)
                         else:
                             try:

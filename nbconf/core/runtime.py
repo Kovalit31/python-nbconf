@@ -27,7 +27,7 @@ class RuntimeData:
     Runtime data storage worker
     '''
     _cmd_reg = {}
-    _variables = {"SHELL": SETUP_NAME, "PWD": os.getcwd()}
+    _variables = {"SHELL": SETUP_NAME, "PWD": os.getcwd()} 
 
     def __init__(self) -> None:
         pass
@@ -46,7 +46,7 @@ class RuntimeData:
             rel_root = root.removeprefix(os.path.abspath(os.path.expanduser(module_path))).lstrip("/")
             rel_root = "nbconf_root" if len(rel_root) == 0 else rel_root
             for x in py_files:
-                modname = rel_root.replace("/", ".")+"."+x
+                modname = rel_root.replace("/", ".")+"."+".".join(x.split(".")[:-1])
                 path = os.path.join(root, x)
 
                 _result = import_module(modname, path)
@@ -66,15 +66,18 @@ def run(runtime: RuntimeData, data: str) -> object:
     Runs commands in @param data with @param runtime runtime
     '''
     from .language import lex, generate, pregenerate
-    _commands = pregenerate(lex(data))
+    _commands = pregenerate((A:=lex(data)))
+    if runtime._variables["DEBUG"]:
+        print(A, _commands)
+        #print("Imported modules: ", sys.modules)
     _pos = 0
     result = None
     while _pos < len(_commands):
         _command = generate(runtime, _commands[_pos])
+        if runtime._variables["DEBUG"]:
+            print(_command)
         if len(_command[0]) == 0:
             printf(f"There is no command at {_pos}", level='e')
-        elif len(_command[0]) == 1 and _command[0][0].startswith("-"):
-            result = _command[0][0][1:]
         elif not _command[0][0] in runtime._cmd_reg:
             printf(f"No such command: '{_command[0][0]}'!", level='e')
         else:
