@@ -3,9 +3,7 @@ Main runner
 '''
 
 from .core import runtime
-from .core import language
 from .core import conf
-
 from .lib import fs
 
 import os
@@ -32,6 +30,7 @@ def _main(args: argparse.Namespace) -> None:
     _runtime._import_mods(conf.get_conf(_runtime,"modules"))
     _runtime._variables["DEBUG"] = args.debug
     if args.config is None and args.FILE is None:
+        _cmds = ""
         while True:
             try:
                 _cmds = input(_runtime._variables["PS1"])
@@ -44,8 +43,6 @@ def _main(args: argparse.Namespace) -> None:
         runtime.run(_runtime, script)
         sys.exit()
     runtime.run(_runtime, "hello_world -- no_err no_msg")
-#     print((a :=language.lex("hello \"?world?\" (?cat?) ?(cat)? # jmp_rel 2; hello -- jmp_rel 2")), (b:=language.pregenerate(a)), language.generate(runtime.RuntimeData(), b[1]))
-
 
 if __name__ == "__main__":
     main()

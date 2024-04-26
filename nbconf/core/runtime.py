@@ -39,7 +39,7 @@ class RuntimeData:
         '''
         if module_path is None:
             return
-        for root, dirs, files in os.walk(module_path):
+        for root, _, files in os.walk(module_path):
             py_files = [x for x in files if not x.startswith("_") and x.endswith(".py")]
             if len(py_files) == 0:
                 continue
@@ -48,7 +48,6 @@ class RuntimeData:
             for x in py_files:
                 modname = rel_root.replace("/", ".")+"."+".".join(x.split(".")[:-1])
                 path = os.path.join(root, x)
-
                 _result = import_module(modname, path)
                 _mod = _result._data if _result.is_ok() else None
                 if _mod == None:
@@ -66,24 +65,23 @@ def run(runtime: RuntimeData, data: str) -> object:
     Runs commands in @param data with @param runtime runtime
     '''
     from .language import gen, jit
-    _commands = gen(data)
+    command_list = gen(data)
     if runtime._variables["DEBUG"]:
-        print(_commands)
-        #print("Imported modules: ", sys.modules)
+        print(command_list)
     _pos = 0
     result = None
-    while _pos < len(_commands):
-        _command = jit(runtime, _commands[_pos])
+    while _pos < len(command_list):
+        cur_command = jit(runtime, command_list[_pos])
         if runtime._variables["DEBUG"]:
-            print(_command)
-        if len(_command[0]) == 0:
+            print(cur_command)
+        if len(cur_command[0]) == 0:
             printf(f"There is no command at {_pos}", level='e')
-        elif len(_command[0][0]) == 0:
+        elif len(cur_command[0][0]) == 0:
             return None
-        elif not _command[0][0] in runtime._cmd_reg:
-            printf(f"No such command: '{_command[0][0]}'!", level='e')
+        elif not cur_command[0][0] in runtime._cmd_reg:
+            printf(f"No such command: '{cur_command[0][0]}'!", level='e')
         else:
-            result = runtime._cmd_reg[_command[0][0]](runtime, _command[0][1:]).unwrap()
+            result = runtime._cmd_reg[cur_command[0][0]](runtime, cur_command[0][1:]).unwrap()
             #if result.is_err():
             #    printf(f"Run error! Exception: {str(result._err)}", level='f')
         _pos += 1

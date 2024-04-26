@@ -18,5 +18,7 @@ def declare(self, args):
 
 def exit(self, args):
     sys.exit()
-    return _Ok() # Never go here
 
+def hello_world(_, __):
+    print("Hello world!")
+    return _Ok()

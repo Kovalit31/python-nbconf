@@ -15,8 +15,8 @@ def tokenize(data):
     '''
     spec = [
         ("VARIABLE", r'\?(\w+|[(].*[)])\?'),
-        ("QUOTE", r'[^\][\']'),
-        ("DOUBLE", r'[^\]["]'),
+        ("QUOTE", r'[^\\][\']'),
+        ("DOUBLE", r'[^\\]["]'),
         ("SWITCH", r'[-][-]'),
         ("IGN_END", r'\\(;|\n)'),
         ("END", r'(;|\n)'),
@@ -82,7 +82,6 @@ def gen(data):
     cmds = [[[],[]]] # cmds: [ cmd: [ self: [], mod: []]]
     part = 0
     for x in tokenize(data):
-        print(x)
         if x.type == "END":
             part = 0
             cmds.append([[],[]])
