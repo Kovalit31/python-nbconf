@@ -27,7 +27,7 @@ class RuntimeData:
     Runtime data storage worker
     '''
     _cmd_reg = {}
-    _variables = {"SHELL": SETUP_NAME, "PWD": os.getcwd()} 
+    _variables = {"SHELL": SETUP_NAME, "PWD": os.getcwd(), "PS1": "nbconf -> $ "} 
 
     def __init__(self) -> None:
         pass
@@ -65,19 +65,21 @@ def run(runtime: RuntimeData, data: str) -> object:
     '''
     Runs commands in @param data with @param runtime runtime
     '''
-    from .language import lex, generate, pregenerate
-    _commands = pregenerate((A:=lex(data)))
+    from .language import gen, jit
+    _commands = gen(data)
     if runtime._variables["DEBUG"]:
-        print(A, _commands)
+        print(_commands)
         #print("Imported modules: ", sys.modules)
     _pos = 0
     result = None
     while _pos < len(_commands):
-        _command = generate(runtime, _commands[_pos])
+        _command = jit(runtime, _commands[_pos])
         if runtime._variables["DEBUG"]:
             print(_command)
         if len(_command[0]) == 0:
             printf(f"There is no command at {_pos}", level='e')
+        elif len(_command[0][0]) == 0:
+            return None
         elif not _command[0][0] in runtime._cmd_reg:
             printf(f"No such command: '{_command[0][0]}'!", level='e')
         else:
@@ -85,4 +87,4 @@ def run(runtime: RuntimeData, data: str) -> object:
             #if result.is_err():
             #    printf(f"Run error! Exception: {str(result._err)}", level='f')
         _pos += 1
-    return result if result is not None else "undef"
+    return result

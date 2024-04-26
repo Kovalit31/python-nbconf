@@ -2,6 +2,8 @@
 Structures and classes
 '''
 
+from dataclasses import dataclass
+
 # =============================
 #          Exceptions
 # =============================
@@ -51,10 +53,15 @@ class Ok(Result):
     '''
     Ok class of Result
     '''
-    def __init__(self, data: object = None) -> None:
+    def __init__(self, *packet_data) -> None:
         super().__init__()
         self._ok = True
-        self._data = data
+        if (a:=len(packet_data)) == 0:
+            self._data = None
+        elif a == 1:
+            self._data = packet_data[0]
+        else:
+            self._data = packet_data
 
 class Err(Result):
     '''
@@ -69,3 +76,9 @@ class Err(Result):
         else:
             self._err = Exception("Unknown error")
 
+@dataclass
+class Token:
+    type: str
+    value: object
+    line: int
+    column: int

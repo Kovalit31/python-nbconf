@@ -23,7 +23,7 @@ def echo(self, args):
         sys.exit = _exit
         return _Err("Nothing good!")
     sys.exit = _exit
-    return _Ok()
+    return _Ok(" ".join(_args.TEXT))
 
 def read(self, args):
     return _Ok()

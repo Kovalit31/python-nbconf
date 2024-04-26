@@ -4,222 +4,130 @@ Language model code for nbconf
 
 from .runtime import RuntimeData
 from ..utils import printf
+from ..utils import structs
 
 import string
+import re
 
-letters = {x: "LETTER" for x in string.ascii_letters}
-punctuation = {x: "PUNCTUATION" for x in string.punctuation}
-digits = {x: "DIGIT" for x in string.digits}
-
-special = {
-    "\\": "BACKSLASH",
-    "#": "COMMENT",
-    "\'": "QUOTE",
-    "\"": "DOUBLE_QUOTE",
-    "?": "VARIABLE",
-    "(": "PARENTHESS_LEFT",
-    ")": "PARENTHESS_RIGHT",
-    "-": "DASH",
-    " ": "WHITESPACE",
-    "\n": "NLINE",
-    ";": "NLINE",
-}
-
-def lex(data: str) -> list[list[str]]:
+def tokenize(data):
     '''
-    Parses @param data to lexical tokens
+    Tokenizer
     '''
-    lex_dict = {}
-    for x in [letters, digits, punctuation, special]:
-        lex_dict.update(x)
-    tokens = [] # list[list[str]] or [[token, value]]
-    for pos, y in enumerate(data):
-        try:
-            tokens.append([lex_dict[y], y])
-        except KeyError:
-            printf(f"Unknown symbol while parsing: '{y}' at {pos}", level='e')
-    return tokens
-
-def pregenerate(tokens: list[list[str]]) -> list[list[list[list[list[str]]]]]:
-    '''
-    Actually is ast analyzer, but very simplified
-    @param tokens is output of lex
-    '''
-    generated = [[[[]], [[]]]] # [command: [cmd: [string_tokens: []], [<same situation>]]
-    dash = False
-    comment = False
-    ignore_special = False
-    cpart = 0
-    varname = []
-    varswitch = False
+    spec = [
+        ("VARIABLE", r'\?(\w+|[(].*[)])\?'),
+        ("QUOTE", r'[^\][\']'),
+        ("DOUBLE", r'[^\]["]'),
+        ("SWITCH", r'[-][-]'),
+        ("IGN_END", r'\\(;|\n)'),
+        ("END", r'(;|\n)'),
+        ("SKIP", r'[ \t\n]+'),
+        ("NUMBER", r'\d+(\.\d*)?'),
+        ("MISMATCH", r'[^\u0020-\u007F]+'.format(
+            re.escape(
+                string.printable.split(" ")[0]
+                ).replace("\\", "\\\\")
+            )),
+        ("SYM", r'.')
+    ]
+    tok_regex = "|".join("(?P<%s>%s)" % pair for pair in spec)
+    line = 1
+    start = 0
     quote = False
     double = False
-    parenthess_stack = []
-    wr = True
-    a = False
-    lq = 0
-
-    write_token = lambda token: generated[-1][cpart][-1].append(token) if not varswitch else varname.append(token)
-
-    def break_variable(*_) -> None:
-        for x in [["IGNORED_VARIABLE", "?"]] + varname[1:]:
-            write_token(x)
-        varname = []
-        varswitch = False
-
-    for pos, token in enumerate(tokens):
-        parenthess = len(parenthess_stack) > 0
-        tname, _ = token
-        if tname == "DASH":
-            if not comment and not quote:
-                wr = False
-                if ignore_special:
-                    ignore_special = False
-                    wr = True
-                elif dash:
-                    if varswitch and not parenthess:
-                        break_variable()
-                    dash = False
-                    cpart = (cpart + 1) % 2
-                else:
-                    if varswitch:
-                        break_variable()
-                    dash = True
-                    a = True
-        elif tname == "WHITESPACE":
-            if not comment and not quote:
-                if not ignore_special:
-                    if varswitch and not parenthess:
-                        break_variable()
-                    wr = False
-                    if len(generated[-1][cpart]) > 0:
-                        generated[-1][cpart].append([])
-                else:
-                    ignore_special = False
-        elif tname == "NLINE":
-            if comment:
-                comment = False
-            if not ignore_special:
-                if varswitch and not parenthess:
-                    break_variable()
+    for tok in re.finditer(tok_regex, data):
+        _type = tok.lastgroup
+        value = tok.group()
+        _column = tok.start() - start
+        if _type == "END" and value == "\n":
+            start = tok.end()
+            line += 1
+        elif _type == "QUOTE":
+            if not double:
                 if quote:
-                    printf(f"Oops! Unterminated quotes at {pos}! NOTE: {lq} is latest open quote", level='f')
-                wr = False
-                generated.append([[[]], [[]]])
-                cpart = 0
+                    quote = False
+                else:
+                    quote = True
+                continue
             else:
-                ignore_special = False
-        elif tname == "BACKSLASH":
-            if not comment:
-                if not ignore_special:
-                    ignore_special = True
+                _type = "SYM"
+        elif _type == "DOUBLE":
+            if not quote:
+                if double:
+                    double = False
                 else:
-                    wr = False
-                    ignore_special = False
-        elif tname == "VARIABLE":
-            if not comment and (quote and double):
-                if not ignore_special:
-                    if varswitch and not parenthess:
-                        varswitch = False
-                        for y in varname:
-                            write_token(y)
-                    elif not parenthess:
-                        varswitch = True
-                else:
-                    token = ["IGNORED_VARIABLE", "?"]
-                    ignore_special = False
-        elif tname == "COMMENT":
-            if not comment and not quote:
-                if not ignore_special:
-                    if varswitch and not parenthess:
-                        break_variable()
-                    comment = True
-                else:
-                    ignore_special = False
-        elif tname == "QUOTE":
-            if not comment:
-                if not ignore_special:
-                    if varswitch and not parenthess:
-                        break_variable()
-                    if quote and not double:
-                        quote = False
-                    elif not quote:
-                        quote = True
-                        lq = pos
-                else:
-                    ignore_special = False
-        elif tname == "DOUBLE_QUOTE":
-            if not comment:
-                if not ignore_special:
-                    if varswitch and not parenthess:
-                        break_variable()
-                    if quote and double:
-                        quote = False
-                        double = False
-                    elif not quote:
-                        quote = True
-                        double = True
-                        lq = pos
-                else:
-                    ignore_special = False
-        elif tname == "PARENTHESS_RIGHT":
-            if parenthess and parenthess_stack[-1] == "(":
-                parenthess_stack.pop()
+                    double = True
+                continue
             else:
-                printf(f"Oops! Unterminated parenthess at {pos}!", level='f')
-        elif tname == "PARENTHESS_LEFT":
-            parenthess_stack.append("(")
-        if not comment:
-            if (tname == "DASH" and dash) and not a:
-                write_token(["PUNCTUATION", "-"])
-                dash = False
-            else:
-                a = False
-        if not wr:
-            wr = True
+                _type = "SYM"
+        elif _type == "SKIP" or _type == "IGN_END":
+            if not (quote or double):
+                continue
+            _type = "SYM"
+        elif _type != "SYM" and _type != "MISMATCH" and quote:
+            __column = _column
+            for x in value:
+                yield structs.Token("SYM", x, line, __column)
+                __column += 1
+        elif _type == "MISMATCH":
+            printf(f"Mismatch at line {line}:{_column}!", level='e')
             continue
-        if comment:
-            continue
-        write_token(token)
-    return generated
+        yield structs.Token(_type if _type is not None else "UNKNOWN", value, line, _column)
 
-def generate(runtime: RuntimeData, cmd: list[list[list[list[str]]]]) -> list[list[str]]:
+def gen(data):
     '''
-    JIT. Processes variables, may work with RuntimeData
-    @param runtime Current process runtime
-    @param cmd Current command to exec (generate(lex("smth"))[x])
+    Generator of command data. Uses tokenizer
+    data: str - Script
+    return: list[list[list[structs.Token]]]
+    '''
+    cmds = [[[],[]]] # cmds: [ cmd: [ self: [], mod: []]]
+    part = 0
+    for x in tokenize(data):
+        print(x)
+        if x.type == "END":
+            part = 0
+            cmds.append([[],[]])
+            continue
+        elif x.type == "SWITCH":
+            part = (part+1)%2
+            continue
+        else:
+            cmds[-1][part].append(x)
+    return cmds
+
+def jit(runtime, cmd):
+    '''
+    JIT. Processes all tokens into end command
+    runtime: RuntimeData - Current runtime
+    cmd: list[list[structs.Token]] - Command (gen(sth)[x])
     '''
     from .runtime import run
-    generated = [[""], [""]]
-    for ppos, cpart in enumerate(cmd):
-        for _, s in enumerate(cpart):
-            if len(generated[ppos][-1]) != 0:
-                generated[ppos].append("")
-            var = False
-            vardata = ""
-            for _, t in enumerate(s):
-                print(t)
-                if t[0] == "VARIABLE":
-                    print(var)
-                    if var:
-                        print(vardata)
-                        if vardata.startswith("(") and vardata.endswith(")"):
-                            _vardata = vardata[1:-1]
-                            printf(str(vardata) + str(_vardata), level='i')
-                            data = run(runtime, _vardata)
-                            generated[ppos][-1] += str(data)
-                        else:
-                            try:
-                                generated[ppos][-1] += runtime._variables[vardata]
-                            except KeyError:
-                                printf(f"Unknown variable '{vardata}'", level='e')
-                        var, vardata = False, ""
-                        continue
-                    var = True
-                    continue
-                if var:
-                    vardata += t[1]
-                    continue
-                generated[ppos][-1] += t[1]
-    return generated
-
+    ret = []
+    for ppos, part in enumerate(cmd):
+        ret.append([""])
+        for tpos, tok in enumerate(part):
+            join = False
+            if tpos > 0:
+                prev = part[tpos-1]
+                join = prev.column+len(prev.value) == tok.column
+            _ret = tok.value
+            if tok.type == "VARIABLE":
+                _data = tok.value[1:-1]
+                _ret = None
+                if _data[::len(_data)-1] == "()":
+                    print(f"Inline command detected at {tok.column}")
+                    _ret = run(runtime, _data[1:-1])
+                    if runtime._variables["DEBUG"]:
+                        print(_ret)
+                else:
+                    try:
+                        _ret = runtime._variables[_data]
+                    except KeyError:
+                        #printf(f"May be incorrect: {_data} variable returned None")
+                        pass
+            
+            if not join:
+                if len(ret[ppos][-1].strip()) > 0:
+                    ret[ppos].append("")
+            if _ret is not None:
+                ret[ppos][-1] += _ret
+    return ret

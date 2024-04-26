@@ -34,7 +34,7 @@ def _main(args: argparse.Namespace) -> None:
     if args.config is None and args.FILE is None:
         while True:
             try:
-                _cmds = input() # TODO PS1
+                _cmds = input(_runtime._variables["PS1"])
             except:
                 print()
                 continue

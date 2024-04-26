@@ -1,7 +1,7 @@
 '''
 Utilities for nbconf (like printf, io utc.)
 '''
-
+import platform
 from . import structs, imp_hook
 
 def printf(*message, level="i"):
@@ -33,3 +33,7 @@ def clean_empty(data: list) -> list:
     for y in _p:
         data.pop(y)
     return data
+
+def system_is_linux() -> bool:
+    return platform.system().lower().startswith('linux')
+
