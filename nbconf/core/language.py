@@ -15,8 +15,8 @@ def tokenize(data):
     '''
     spec = [
         ("VARIABLE", r'\?(\w+|[(].*[)])\?'),
-        ("QUOTE", r'[^\\][\']'),
-        ("DOUBLE", r'[^\\]["]'),
+        ("QUOTE", r'(?<!\\)[\']'),
+        ("DOUBLE", r'(?<!\\)["]'),
         ("SWITCH", r'[-][-]'),
         ("IGN_END", r'\\(;|\n)'),
         ("END", r'(;|\n)'),
@@ -43,19 +43,13 @@ def tokenize(data):
             line += 1
         elif _type == "QUOTE":
             if not double:
-                if quote:
-                    quote = False
-                else:
-                    quote = True
+                quote ^= True
                 continue
             else:
                 _type = "SYM"
         elif _type == "DOUBLE":
             if not quote:
-                if double:
-                    double = False
-                else:
-                    double = True
+                double ^= True
                 continue
             else:
                 _type = "SYM"
@@ -68,6 +62,7 @@ def tokenize(data):
             for x in value:
                 yield structs.Token("SYM", x, line, __column)
                 __column += 1
+            continue
         elif _type == "MISMATCH":
             printf(f"Mismatch at line {line}:{_column}!", level='e')
             continue
