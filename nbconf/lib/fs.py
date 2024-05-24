@@ -1,7 +1,7 @@
 '''
 Filesystem library
 '''
-from ..utils import printf
+from ..utils import random_uuid
 from ..utils.structs import Err, Ok, Result
 
 import os
@@ -34,14 +34,16 @@ class File(FsObject):
 
     def __init__(self, path: str, touch=True) -> None:
         super().__init__(path)
-        if not os.path.exists(self.path):
+        if not os.path.exists(self.path): # type: ignore
             if not touch:
                 raise OSError("File not exists!")
             self.clear()
-        elif os.path.isdir(self.path):
-            printf(f"Path is directory: '{path}'!", level='f')
+        elif os.path.isdir(self.path): # type: ignore
+            self.path = None
 
     def clear(self) -> Result:
+        if self.path == None:
+            return Ok()
         try:
             open(self.path, "w", encoding="utf-8").close()
             return Ok()
@@ -49,6 +51,8 @@ class File(FsObject):
             return Err(Exception(f"Can't clear: {str(e)}"))
 
     def read(self) -> Result:
+        if self.path == None:
+            return Ok([])
         try:
             f = open(self.path, "r", encoding="utf-8")
             if not f.readable():
@@ -61,6 +65,8 @@ class File(FsObject):
             return Err(f"Read error: {str(e)}")
     
     def write(self, data: list, append=True) -> Result:
+        if self.path == None:
+            return Ok()
         try:
             _w = "\n".join(data) if isinstance(data, list) else str(data)
             f = open(self.path, "a" if append else "w", encoding="utf-8")
@@ -74,6 +80,9 @@ class File(FsObject):
             return Err(f"Write error: {str(e)}")
 
     def remove(self) -> Result:
+        if self.path == None:
+            del(self)
+            return Ok()
         try:
             os.remove(self.path)
             del(self)
@@ -88,12 +97,14 @@ class Dir(FsObject):
 
     def __init__(self, path: str):
         super().__init__(path)
-        if not os.path.exists(self.path):
+        if not os.path.exists(self.path): # type: ignore
             self.create()
-        elif os.path.isfile(self.path):
-            printf(f"Path is file: '{self.path}'!", level='f')
+        elif os.path.isfile(self.path): # type: ignore
+            self.path = None
 
     def create(self) -> Result:
+        if self.path == None:
+            return Ok()
         if os.path.exists(self.path):
             return Ok()
         try:
@@ -103,6 +114,8 @@ class Dir(FsObject):
             return Err(f"Create error: '{str(e)}'!")
    
     def add_file(self, name: str) -> Result:
+        if self.path == None:
+            return Ok(File("/dev/null"))
         _norm = os.path.normpath(name)
         if os.path.isabs(_norm):
             if os.path.exists(_norm):
@@ -114,6 +127,8 @@ class Dir(FsObject):
         return Ok(File(_full))
 
     def add_dir(self, name: str):
+        if self.path == None:
+            return Ok(Dir(f"/tmp/{random_uuid}")) # Probably, on windows we don't need extra path feature)
         _norm = os.path.normpath(name)
         if os.path.isabs(_norm):
             if os.path.exists(_norm):
@@ -125,12 +140,16 @@ class Dir(FsObject):
         return Ok(Dir(_full))
     
     def list(self) -> Result:
+        if self.path == None:
+            return Ok([])
         try:
             return Ok(os.listdir(self.path))
         except Exception as e:
             return Err(f"List error: {str(e)}")
 
     def remove(self) -> Result:
+        if self.path == None:
+            return Ok()
         try:
             shutil.rmtree(self.path)
             del(self)

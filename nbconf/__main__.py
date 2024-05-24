@@ -28,7 +28,8 @@ def _main(args: argparse.Namespace) -> None:
     _runtime._variables["CONF"] = _runtime._variables["PWD"] if args.config is None else args.config
     _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"))
     _runtime._import_mods(conf.get_conf(_runtime,"modules"))
-    _runtime._variables["DEBUG"] = args.debug
+    _runtime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
+    runtime.LegacyRuntime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
     if args.config is None and args.FILE is None:
         _cmds = ""
         while True:
@@ -39,7 +40,7 @@ def _main(args: argparse.Namespace) -> None:
                 continue
             runtime.run(_runtime, _cmds)
     if args.FILE is not None:
-        script = "".join(fs.File(args.FILE, touch=False).read().unwrap())
+        script = "".join(fs.File(args.FILE, touch=False).read().unwrap()) # type: ignore
         runtime.run(_runtime, script)
         sys.exit()
     runtime.run(_runtime, "hello_world -- no_err no_msg")

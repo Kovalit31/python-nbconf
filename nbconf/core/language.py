@@ -2,7 +2,7 @@
 Language model code for nbconf
 '''
 
-from .runtime import RuntimeData
+from .runtime import LegacyRuntime
 from ..utils import printf
 from ..utils import structs
 
@@ -14,14 +14,14 @@ def tokenize(data):
     Tokenizer
     '''
     spec = [
-        ("VARIABLE", r'\?(\w+|[(].*[)])\?'),
+        ("VARIABLE", r'\?(\w+|[(].*[)]|[{].*[}])\?'),
         ("QUOTE", r'(?<!\\)[\']'),
         ("DOUBLE", r'(?<!\\)["]'),
         ("SWITCH", r'[-][-]'),
         ("IGN_END", r'\\(;|\n)'),
         ("END", r'(;|\n)'),
         ("SKIP", r'[ \t\n]+'),
-        ("NUMBER", r'\d+(\.\d*)?'),
+        ("NUMBER", r'(\+|\-)?\d+(\.\d*)?'),
         ("MISMATCH", r'[^\u0020-\u007F]+'.format(
             re.escape(
                 string.printable.split(" ")[0]
@@ -64,7 +64,7 @@ def tokenize(data):
                 __column += 1
             continue
         elif _type == "MISMATCH":
-            printf(f"Mismatch at line {line}:{_column}!", level='e')
+            printf(f"Mismatch at line {line}:{_column}!", runtime=LegacyRuntime, level='d')
             continue
         yield structs.Token(_type if _type is not None else "UNKNOWN", value, line, _column)
 
@@ -107,21 +107,24 @@ def jit(runtime, cmd):
             if tok.type == "VARIABLE":
                 _data = tok.value[1:-1]
                 _ret = None
-                if _data[::len(_data)-1] == "()":
+                if len(_data) > 4 and _data[::len(_data)-1] == "()":
                     print(f"Inline command detected at {tok.column}")
                     _ret = run(runtime, _data[1:-1])
                     if runtime._variables["DEBUG"]:
                         print(_ret)
                 else:
+                    if len(_data) > 4 and _data[::len(_data)-1] == "{}":
+                        _data = _data[1:-1]
                     try:
                         _ret = runtime._variables[_data]
                     except KeyError:
-                        #printf(f"May be incorrect: {_data} variable returned None")
+                        printf(f"May be incorrect: {_data} variable returned None", runtime=runtime, level='d')
                         pass
-            
             if not join:
                 if len(ret[ppos][-1].strip()) > 0:
                     ret[ppos].append("")
             if _ret is not None:
                 ret[ppos][-1] += _ret
+        if len(ret[-1]) == 1 and len(ret[-1][-1]) == 0:
+            ret[-1] = []
     return ret
