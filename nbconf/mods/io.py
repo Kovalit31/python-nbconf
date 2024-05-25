@@ -1,12 +1,9 @@
 import sys
 import argparse
-try:
-    _nbconf = sys.modules["nbconf_root"]
-except KeyError:
-    raise ImportError("Not running in nbconf runtime, exit!")
+import nbconf_root as _root
 
-_Ok = getattr(_nbconf, "struct.Result.Ok")
-_Err = getattr(_nbconf, "struct.Result.Err")
+_Ok = _root.struct.Result.Ok
+_Err = _root.struct.Result.Err
 
 def _donothing(*_, **__):
     return None

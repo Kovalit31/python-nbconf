@@ -82,3 +82,11 @@ class Token:
     value: object
     line: int
     column: int
+
+class RValue():
+    def __init__(self, data):
+        self.data = data
+
+class Empty():
+    pass
+

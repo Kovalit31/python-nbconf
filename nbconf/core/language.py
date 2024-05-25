@@ -14,7 +14,8 @@ def tokenize(data):
     Tokenizer
     '''
     spec = [
-        ("VARIABLE", r'\?(\w+|[(].*[)]|[{].*[}])\?'),
+        ("COMMENT", r'([#].*$|[/][*].*[*][/])'),
+        ("VARIABLE", r'[?](\w+|[\(].*[\)]|[{].*[}])[?]'),
         ("QUOTE", r'(?<!\\)[\']'),
         ("DOUBLE", r'(?<!\\)["]'),
         ("SWITCH", r'[-][-]'),
@@ -66,6 +67,8 @@ def tokenize(data):
         elif _type == "MISMATCH":
             printf(f"Mismatch at line {line}:{_column}!", runtime=LegacyRuntime, level='d')
             continue
+        elif _type == "COMMENT":
+            continue
         yield structs.Token(_type if _type is not None else "UNKNOWN", value, line, _column)
 
 def gen(data):
@@ -108,10 +111,10 @@ def jit(runtime, cmd):
                 _data = tok.value[1:-1]
                 _ret = None
                 if len(_data) > 4 and _data[::len(_data)-1] == "()":
-                    print(f"Inline command detected at {tok.column}")
-                    _ret = run(runtime, _data[1:-1])
-                    if runtime._variables["DEBUG"]:
-                        print(_ret)
+                    printf(f"Inline command detected at {tok.column}", runtime=runtime, level='d')
+                    run(runtime, _data[1:-1])
+                    _ret = runtime._variables["<<"]
+                    printf(str(_ret), runtime=runtime, level='d')
                 else:
                     if len(_data) > 4 and _data[::len(_data)-1] == "{}":
                         _data = _data[1:-1]

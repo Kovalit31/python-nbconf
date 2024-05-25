@@ -59,3 +59,39 @@ def random_uuid(length=20) -> str:
     return "".join(
         random.choices([*(string.ascii_lowercase + string.digits)], k=length)
     )
+
+def get_rattr(cl: object, rpath: list) -> object:
+    _temp = cl
+    for x in rpath:
+        x = x.strip()
+        if x in dir(_temp):
+            _temp = getattr(_temp, x)
+        else:
+            return None
+    return _temp
+
+def set_rattr(cl: object, rpath: list, value: object):
+    path = [cl]
+    if rpath[-1].strip() == "_self":
+        return
+    for x in rpath[:-1]:
+        x = x.strip()
+        if x == "_self":
+            return
+        if x in dir(path[-1]):
+            if not isinstance(getattr(path[-1], x), structs.Empty):
+                z = structs.Empty()
+                setattr(z, "_self", getattr(path[-1], x))
+                path.append(z)
+                continue
+            path.append(getattr(path[-1], x))
+        else:
+            path.append(structs.Empty())
+    path.append(value)
+    path = path[::-1]
+    rpath = rpath[::-1]
+    if rpath[-1] in dir(path[-2]):
+        return
+    for xpos, x in enumerate(rpath):
+        setattr(path[xpos+1], x, path[xpos])
+

@@ -5,11 +5,10 @@ Runtime initialization and lifetime
 import copy
 import sys
 import os
-import re
 from typing import Callable
 
-from ..utils import printf, resolve_jump
-from ..utils.structs import Result, Ok
+from ..utils import printf, resolve_jump, set_rattr
+from ..utils.structs import Err, Ok
 from ..utils.imp_hook import import_module, unimport_module
 
 SETUP_NAME = "nbconf_root"
@@ -20,7 +19,9 @@ class SetupRuntime:
     '''
     def __init__(self, setup_defs: dict) -> None:
         for x, y in setup_defs.items():
-            setattr(self, x, y) 
+            a = x.split(".")
+            set_rattr(self, a, y)
+        printf(" ".join([x for x in dir(self) if not x.startswith("__")]), runtime=LegacyRuntime, level='d')
         sys.modules[SETUP_NAME] = self # type: ignore
 
 class RuntimeData:
@@ -74,6 +75,7 @@ class RuntimeData:
                     if not isinstance(_f, Callable):
                         continue
                     self._cmd_reg[y] = _f
+                unimport_module(_mod, modname)
 
 LegacyRuntime = RuntimeData()
 
@@ -97,16 +99,19 @@ def run(runtime: RuntimeData, data: str) -> object:
             _pos += 1
             continue
         else:
-            result = Ok()
+            result = Err(f"Command '{cur_command[0][0]}' not found!")
             runtime._variables["<<"] = None
             runtime._variables["<?"] = 255
             if cur_command[0][0] in runtime._cmd_reg:
                 result = runtime._cmd_reg[cur_command[0][0]](runtime, cur_command[0][1:])
                 runtime._variables["<?"] = 0
+            else:
+                printf(f"Command '{cur_command[0][0]}' not found!", runtime=runtime, level='e')
             wait_next = False
             for m_pos, mod in enumerate(cur_command[1]):
                 if mod in runtime._mod_aliases and not wait_next:
                     mod = runtime._mod_aliases[mod]
+                    cur_command[1][m_pos] = mod
                 if wait_next:
                     try:
                         mod_data[cur_command[1][m_pos-1]] = type(mod_data[cur_command[1][m_pos-1]])(mod)
@@ -114,7 +119,7 @@ def run(runtime: RuntimeData, data: str) -> object:
                     except:
                         printf(f"Can't set {mod} as type {type(mod_data[cur_command[1][m_pos-1]])}", runtime=runtime, level='d')
                     continue
-                if not mod in data:
+                if not mod in mod_data:
                     printf(f"Mod not found {mod}!", runtime=runtime, level='e')
                     continue
                 if not isinstance(mod_data[mod], bool):

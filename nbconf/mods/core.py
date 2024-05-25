@@ -1,10 +1,7 @@
+import nbconf_root as _root
 import sys
-try:
-    _nbconf = sys.modules["nbconf_root"]
-except KeyError:
-    raise ImportError("Not running in nbconf runtime, exit!")
 
-_Ok = getattr(_nbconf, "struct.Result.Ok")
+_Ok = _root.struct.Result.Ok
 
 def export(self, args): # Copy-paste bash :)
     return self._cmd_reg["declare"](self, ["-x"] + args)
