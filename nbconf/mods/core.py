@@ -1,4 +1,4 @@
-import nbconf_root as _root
+import nbconf_root as _root # type: ignore
 import sys
 
 _Ok = _root.struct.Result.Ok

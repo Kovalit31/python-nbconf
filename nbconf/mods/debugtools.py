@@ -1,10 +1,13 @@
-try:
-    import nbconf_root
-except:
-    raise Exception()
+import nbconf_root # type: ignore
 
 __version__ = "0.0.1"
 __autor__ = "Kovalit31"
+
+'''
+Debugtools for nbconf
+This module CAN'T USE ANY of dependencies from root. All this dependencies need to be written here
+Purpose of this module is debugging some API methods,  
+'''
 
 def __debugshell():
     while True:

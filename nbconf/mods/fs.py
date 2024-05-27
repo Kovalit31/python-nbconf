@@ -1,4 +1,4 @@
-import nbconf_root as _root
+import nbconf_root as _root # type: ignore
 
 _Ok = _root.struct.Result.Ok
 _Err = _root.struct.Result.Err
