@@ -79,7 +79,7 @@ class RuntimeData:
 
 LegacyRuntime = RuntimeData()
 
-def run(runtime: RuntimeData, data: str) -> object:
+def run(runtime: RuntimeData, data: str):
     '''
     Runs commands in @param data with @param runtime runtime
     '''
@@ -146,4 +146,4 @@ def run(runtime: RuntimeData, data: str) -> object:
                     printf(error, runtime=runtime, level='f')
                 else:
                     sys.exit(2) # TODO Fix this
-    return result
+    # return result

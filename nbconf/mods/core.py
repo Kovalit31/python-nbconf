@@ -19,3 +19,7 @@ def exit(self, args):
 def hello_world(_, __):
     print("Hello world!")
     return _Ok()
+
+# TODO Can disable
+def system_exec():
+    return _Ok()
