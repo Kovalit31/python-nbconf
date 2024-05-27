@@ -1,7 +1,7 @@
 '''
-Project configuration file
+Configuration file library
 '''
-from ..lib.fs import File 
+from .fs import File 
 import json
 import os
 # TODO All

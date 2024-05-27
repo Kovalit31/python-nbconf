@@ -3,7 +3,7 @@ Main runner
 '''
 
 from .core import runtime
-from .core import conf
+from .lib import conf
 from .lib import fs
 
 import os

@@ -4,6 +4,7 @@ Utilities for nbconf (like printf, io utc.)
 import platform
 import random
 import string
+import os
 from . import structs, imp_hook
 
 def printf(*message, runtime, level="i", ehandler=Exception):
@@ -95,3 +96,7 @@ def set_rattr(cl: object, rpath: list, value: object):
     for xpos, x in enumerate(rpath):
         setattr(path[xpos+1], x, path[xpos])
 
+def get_relroot(root: str, path: str) -> str:
+    rel_root = root.removeprefix(os.path.abspath(os.path.expanduser(path)).replace("\\","/")).lstrip("/")
+    rel_root = "nbconf_root" if len(rel_root) == 0 else "nbconf_root/"+rel_root
+    return rel_root

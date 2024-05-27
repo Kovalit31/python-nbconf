@@ -15,7 +15,9 @@ reg = {
     "lib.io.print": utils.printf,
     "lib.fs.object.File": lib.fs.File,
     "lib.fs.object.Dir": lib.fs.Dir,
-    "core.config.get": core.conf.get_conf,
+    "lib.api.function.can_disable": lib.api.can_disable,
+    "core.config.get": lib.conf.get_conf,
+    "lib.functions.get_relroot": utils.get_relroot
 }
 
 def setup_runtime() -> None:

@@ -6,33 +6,27 @@ __autor__ = "Kovalit31"
 '''
 Debugtools for nbconf
 This module CAN'T USE ANY of dependencies from root. All this dependencies need to be written here
-Purpose of this module is debugging some API methods,  
+Purpose of this module is debugging some API methods.
 '''
 
 def __debugshell():
     while True:
         cmd = input("!debugshell (from debugtools) >>> ")
+        cmd = cmd.strip()
         if cmd == "exit":
             break
         elif cmd == "version":
             print(f"debugshell {__version__} for nbconf by {__autor__}")
+            continue
+        elif cmd == "":
             continue
         yield cmd
 
 def __debugprint(msg: str):
     print("[DEBUG] "+msg)
 
-class _Ok():
-    data = None
-    def is_ok(self):
-        return True
-    def is_err(self):
-        return False
-    def unwrap(self):
-        return None
-
-def module_seek(_, __):
-    _temp = [nbconf_root]
+def __seeker(what: object):
+    _temp = [what]
     for x in __debugshell():
         if x.startswith("./"):
             z = x[2:].rstrip()
@@ -49,6 +43,32 @@ def module_seek(_, __):
             __debugprint(" ".join(dir(_temp[-1])))
         elif x.startswith("//"):
             __debugprint(str(_temp))
+        elif x.startswith("_"):
+            a = x[1:].split(" ")
+            try:
+                b = getattr(_temp[-1], a[0])
+                print(str(b(*a[1:])))
+            except Exception as e:
+                __debugprint(f"not supported: {str(e)}")
         else:
+            if not x in dir(_temp[-1]):
+                __debugprint("no attribute associated")
+                continue
             __debugprint(str(getattr(_temp[-1], x)))
+
+class _Ok():
+    data = None
+    def is_ok(self):
+        return True
+    def is_err(self):
+        return False
+    def unwrap(self):
+        return None
+
+def module_seek(_, __):
+    __seeker(nbconf_root)
+    return _Ok()
+
+def runtime_seek(runtime, __):
+    __seeker(runtime)
     return _Ok()

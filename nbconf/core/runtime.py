@@ -7,7 +7,7 @@ import sys
 import os
 from typing import Callable
 
-from ..utils import printf, resolve_jump, set_rattr
+from ..utils import printf, resolve_jump, set_rattr, get_relroot
 from ..utils.structs import Err, Ok
 from ..utils.imp_hook import import_module, unimport_module
 
@@ -44,9 +44,9 @@ class RuntimeData:
         "no_exit": False,
         "no_msg": False,
     }
+    _mod_assoc = {
 
-    def __init__(self) -> None:
-        pass
+    }
 
     def _import_mods(self, module_path) -> None:
         '''
@@ -59,23 +59,26 @@ class RuntimeData:
             py_files = [x for x in files if not x.startswith("_") and x.endswith(".py")]
             if len(py_files) == 0:
                 continue
-            rel_root = root.removeprefix(os.path.abspath(os.path.expanduser(module_path))).lstrip("/")
-            rel_root = "nbconf_root" if len(rel_root) == 0 else rel_root
+            rel_root = get_relroot(root.replace("\\","/"), module_path)
             for x in py_files:
-                modname = rel_root.replace("/", ".")+"."+".".join(x.split(".")[:-1])
-                path = os.path.join(root, x)
-                _result = import_module(modname, path)
-                _mod = _result._data if _result.is_ok() else None
-                if _mod == None:
-                    continue
-                for y in dir(_mod):
-                    if y.startswith("_"):
-                        continue
-                    _f = getattr(_mod, y)
-                    if not isinstance(_f, Callable):
-                        continue
-                    self._cmd_reg[y] = _f
-                unimport_module(_mod, modname)
+                self._import_mod(rel_root, os.path.join(root, x))
+
+    def _import_mod(self, rel_root: str, file: str) -> None:
+        modname = rel_root.replace("/", ".")+"."+".".join(os.path.basename(file).split(".")[:-1])
+        _result = import_module(modname, file)
+        _mod = _result._data if _result.is_ok() else None
+        if _mod == None:
+            return
+        for y in dir(_mod):
+            if y.startswith("_"):
+                continue
+            if y in self._cmd_reg:
+                continue
+            _f = getattr(_mod, y)
+            if not isinstance(_f, Callable):
+                continue
+            self._cmd_reg[y] = _f
+        unimport_module(_mod, modname)
 
 LegacyRuntime = RuntimeData()
 
