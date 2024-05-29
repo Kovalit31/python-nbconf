@@ -96,7 +96,26 @@ def set_rattr(cl: object, rpath: list, value: object):
     for xpos, x in enumerate(rpath):
         setattr(path[xpos+1], x, path[xpos])
 
+def remove_same(s1, s2):
+    first = None
+    for x in range(max(len(s1), len(s2))):
+        if x >= len(s1):
+            first = True
+            break
+        elif x >= len(s2):
+            first = False
+            break
+        elif s1[x] != s2[x]:
+            break
+    return s1[x:] if not first else "", s2[x:] if first or first is None else ""
+
 def get_relroot(root: str, path: str) -> str:
-    rel_root = root.removeprefix(os.path.abspath(os.path.expanduser(path)).replace("\\","/")).lstrip("/")
+    root = os.path.abspath(os.path.expanduser(root))
+    path = os.path.abspath(os.path.expanduser(path))
+    if root in path:
+        rel_root = path[len(root):].replace("\\","/").lstrip("/")
+    else:
+        s1, s2 = remove_same(root, path)
+        rel_root = "/"*(("/"+s1.lstrip("/")).count("/"))+s2 if len(s1) > 0 else s2
     rel_root = "nbconf_root" if len(rel_root) == 0 else "nbconf_root/"+rel_root
     return rel_root

@@ -115,7 +115,7 @@ class Dir(FsObject):
    
     def add_file(self, name: str) -> Result:
         if self.path == None:
-            return Ok(File("/dev/null"))
+            return Ok(File(os.devnull))
         _norm = os.path.normpath(name)
         if os.path.isabs(_norm):
             if os.path.exists(_norm):
@@ -128,7 +128,7 @@ class Dir(FsObject):
 
     def add_dir(self, name: str):
         if self.path == None:
-            return Ok(Dir(f"/tmp/{random_uuid}")) # Probably, on windows we don't need extra path feature)
+            return Ok(Dir(f"{random_uuid}")) # Probably, on windows we don't need extra path feature)
         _norm = os.path.normpath(name)
         if os.path.isabs(_norm):
             if os.path.exists(_norm):

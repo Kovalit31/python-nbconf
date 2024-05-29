@@ -9,7 +9,7 @@ from typing import Callable
 
 from ..utils import printf, resolve_jump, set_rattr, get_relroot
 from ..utils.structs import Err, Ok
-from ..utils.imp_hook import import_module, unimport_module
+from ..utils.imp_hook import import_module
 
 SETUP_NAME = "nbconf_root"
 
@@ -44,11 +44,10 @@ class RuntimeData:
         "no_exit": False,
         "no_msg": False,
     }
-    _mod_assoc = {
+    _mod_assoc = {}
+    _mod_path = {}
 
-    }
-
-    def _import_mods(self, module_path) -> None:
+    def _import_mods(self, def_mod_path, module_path) -> None:
         '''
         Imports modules
         @param module_path Is a path to modules
@@ -59,7 +58,7 @@ class RuntimeData:
             py_files = [x for x in files if not x.startswith("_") and x.endswith(".py")]
             if len(py_files) == 0:
                 continue
-            rel_root = get_relroot(root.replace("\\","/"), module_path)
+            rel_root = get_relroot(def_mod_path, root)
             for x in py_files:
                 self._import_mod(rel_root, os.path.join(root, x))
 
@@ -69,6 +68,9 @@ class RuntimeData:
         _mod = _result._data if _result.is_ok() else None
         if _mod == None:
             return
+        if _mod in self._mod_path:
+            return
+        self._mod_path[modname] = file
         for y in dir(_mod):
             if y.startswith("_"):
                 continue
@@ -78,7 +80,10 @@ class RuntimeData:
             if not isinstance(_f, Callable):
                 continue
             self._cmd_reg[y] = _f
-        unimport_module(_mod, modname)
+            if not modname in self._mod_assoc:
+                self._mod_assoc[modname] = [y]
+            else:
+                self._mod_assoc[modname].append(y)
 
 LegacyRuntime = RuntimeData()
 
@@ -106,7 +111,11 @@ def run(runtime: RuntimeData, data: str):
             runtime._variables["<<"] = None
             runtime._variables["<?"] = 255
             if cur_command[0][0] in runtime._cmd_reg:
-                result = runtime._cmd_reg[cur_command[0][0]](runtime, cur_command[0][1:])
+                try:
+                    result = runtime._cmd_reg[cur_command[0][0]](runtime, cur_command[0][1:])
+                except Exception as e:
+                    printf(f"Can't run command {cur_command[0][0]}: {e}", runtime=runtime, level='e')
+                    break
                 runtime._variables["<?"] = 0
             else:
                 printf(f"Command '{cur_command[0][0]}' not found!", runtime=runtime, level='e')

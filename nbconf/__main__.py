@@ -27,8 +27,8 @@ def _main(args: argparse.Namespace) -> None:
     setup_runtime()
     _runtime = runtime.RuntimeData()
     _runtime._variables["CONF"] = _runtime._variables["PWD"] if args.config is None else args.config
-    _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"))
-    _runtime._import_mods(conf.get_conf(_runtime,"modules"))
+    _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), os.path.join(os.path.dirname(__file__), "mods"))
+    _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), conf.get_conf(_runtime,"modules"))
     _runtime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
     if args.config is None and args.FILE is None:
         _cmds = ""
