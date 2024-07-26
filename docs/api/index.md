@@ -1,4 +1,4 @@
 # Index of 'API'
 
-- [Runtime specification](runtime_spec.md)
-- [Runtime provided objects](runtime_obj.md)
+- [Main side runtime specification](main_runtime_spec.md)
+- [Mod side runtime specification](mod_runtime_spec.md)
