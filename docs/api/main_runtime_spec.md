@@ -52,9 +52,9 @@ runtime._variables["VAR"] = "somerandomtext"
 # Getting variable
 print(runtime._variables["VAR"])
 ```
-________<br>
+++++++++<br>
 CAUTION!<br>
-————————<br>
+++++++++<br>
 1. You mustn't print (leak) variables (also in debug!)
 2. You mustn't use variables like PWD or smth like, use internal functions! These variables only for scripting!
 3. You have to not use non-predefined variables without checking
