@@ -18,6 +18,8 @@ reg = {
     "lib.fs.object.Dir": lib.fs.Dir,
     "lib.api.function.can_disable": lib.api.can_disable,
     "core.config.get": lib.conf.get_conf,
+    "core.runtime.RuntimeData": core.runtime.RuntimeData,
+    "core.runtime.SetupRuntime": core.runtime.SetupRuntime,
     "lib.functions.get_relroot": utils.get_relroot,
     "lib.functions.module.import_mod": utils.imp_hook.import_module,
     "lib.functions.module.unimport_mod": utils.imp_hook.unimport_module,
