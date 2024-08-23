@@ -102,13 +102,12 @@ def rmmod(runtime, args):
     return _Ok()
 
 __MUTATE = {
-    "vars": [],
+    "vars": {},
     # funtions: [PRESTART, POSTSTART]
     "functions": [[], [_jmp_mutate]]
 }
 
 #__EXPORTABLE = {
 #   "functions": {"cmd_name": function} or [function],
-#   "vars": {"var_name": actuall_var}
 #   "other": {"author": author, "version": version}
 #}

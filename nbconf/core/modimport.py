@@ -12,7 +12,11 @@ def resolve_symbol(self, symbol, mod, helpers):
 ## CORE FUNCTIONS
 
 def _set_exportable(self, symbol, mod):
-    return Err()
+    if symbol != "__EXPORTABLE":
+        return Err()
+    exportable = getattr(mod, symbol)
+    
+    return Ok()
 
 def _set_mutate(self, symbol, mod):
     return Err()

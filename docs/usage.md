@@ -26,5 +26,9 @@ def hello_world(_, _):
     print("Hello world!")
     return nbconf_root.struct.Result.Ok()
 ```
+More tutor on this you can get [here](api/index.md).
 
+### 3. Debugging / Testing commands
 
+Nbconf can be runned. For this, simply call 'nbconf' (if you installed with pip)</br>
+or use 'python3 -m nbconf --help' for help information.

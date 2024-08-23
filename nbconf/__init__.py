@@ -1,5 +1,8 @@
 '''
-Main header
+A new simple scripting library/console with extending on Python.
+
+For moddding tutorial, refer to /docs/api/index.md
+For usage, refer to /docs/usage.md
 '''
 
 from .__main__ import main

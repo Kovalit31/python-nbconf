@@ -20,9 +20,12 @@ runtime._cmd_reg["my_func"] = my_func # CAUTION: Do not place parenteses after f
 - RuntimeData._cmd_reg: dict[str, function] - Map between command-line commands and they handler functions
 - RuntimeData._variables: dict[str, Any] - Map between command-line variables and some data
 - RuntimeData._mod_aliases: dict[str, str] - Aliases for modded command execution
-- RuntimeData._mod_pattern: dict[str, Any] - Pattetns of data, which are used internally, processing command mods
-- RuntimeData._mod_assoc - Undocumented yet
-- RuntimeData._mod_path - Undocumented yet
+- RuntimeData._mod_func: dict[Module, list[function]] - Map between modules and their functions
+- RuntimeData._mod_assoc: dict[str, Module] - Map between module names and theirs modules
+- RuntimeData._mod_path: dict[Module, str] - Map between module and his location path
+- RuntimeData._mutate: MutateData - Mutator, defined for this runtime
+- RuntimeData._next: int - Next command index (Must be processed by runner and/or by MutateData)
+- RuntimeData._instructions - Current instructions (Must be defined by runner)
 - RuntimeData._import_mods(def_mod_path: str, module_path: str) - Check below
 - RuntimeData._import_mod(rel_root: str, file: str) - Check below
 
