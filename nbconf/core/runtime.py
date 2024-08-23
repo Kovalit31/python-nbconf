@@ -37,9 +37,11 @@ class RuntimeData:
     _mod_func = {}
     _mod_assoc = {}
     _mod_path = {}
+    _mod_reg_data = {}
     _mutate = MutateData()
     _instructions = []
     _next = 1
+    _private_data = {}
 
     def _import_mods(self, def_mod_path, module_path) -> None:
         '''

@@ -2,12 +2,19 @@
 Language model code for nbconf
 '''
 
+from dataclasses import dataclass
 from nbconf.core.runtime import LegacyRuntime
 from nbconf.lib.io import printf
-from nbconf.lib import structs
 
 import string
 import re
+
+@dataclass
+class Token:
+    type: str
+    value: object
+    line: int
+    column: int
 
 def tokenize(data):
     '''
@@ -61,7 +68,7 @@ def tokenize(data):
         elif _type != "SYM" and _type != "MISMATCH" and quote:
             __column = _column
             for x in value:
-                yield structs.Token("SYM", x, line, __column)
+                yield Token("SYM", x, line, __column)
                 __column += 1
             continue
         elif _type == "MISMATCH":
@@ -69,7 +76,7 @@ def tokenize(data):
             continue
         elif _type == "COMMENT":
             continue
-        yield structs.Token(_type if _type is not None else "UNKNOWN", value, line, _column)
+        yield Token(_type if _type is not None else "UNKNOWN", value, line, _column)
 
 def gen(data):
     '''

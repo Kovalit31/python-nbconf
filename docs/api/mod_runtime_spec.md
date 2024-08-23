@@ -57,7 +57,7 @@ Also you can create custom mutators (but you need to refer [Main runtime specifi
 Structure definitions is:</br>
 ```python
 __EXPORTABLE = {
-    "functions": [my_func], # Or {"my_func_command_name": my_func}
+    "functions": ["my_func"], # Or {"my_func_command_name": my_func}
     "other": {
         "author": "AUTHOR",
         "version": "0.0.0"

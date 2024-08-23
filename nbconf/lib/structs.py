@@ -75,18 +75,3 @@ class Err(Result):
             self._err = Exception(error)
         else:
             self._err = Exception("Unknown error")
-
-@dataclass
-class Token:
-    type: str
-    value: object
-    line: int
-    column: int
-
-class RValue():
-    def __init__(self, data):
-        self.data = data
-
-class Empty():
-    pass
-

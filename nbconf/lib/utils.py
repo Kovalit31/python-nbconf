@@ -5,7 +5,8 @@ import random
 import string
 import os
 
-from . import structs
+class Empty():
+    pass
 
 def clean_empty(data: list) -> list:
     _p = []
@@ -57,14 +58,14 @@ def set_rattr(cl: object, rpath: list, value: object):
         if x == "_self":
             return
         if x in dir(path[-1]):
-            if not isinstance(getattr(path[-1], x), structs.Empty):
-                z = structs.Empty()
+            if not isinstance(getattr(path[-1], x), Empty):
+                z = Empty()
                 setattr(z, "_self", getattr(path[-1], x))
                 path.append(z)
                 continue
             path.append(getattr(path[-1], x))
         else:
-            path.append(structs.Empty())
+            path.append(Empty())
     path.append(value)
     path = path[::-1]
     rpath = rpath[::-1]
