@@ -5,6 +5,18 @@ import os
 
 _Ok = _root.struct.Result.Ok
 
+def _jmp_mutate(self, runtime, additional):
+    cur = runtime.next - 1
+    variables = self._mutate_vars
+    result = additional
+    if result is None:
+        return _root.struct.Result.Err("jmp_mutate can't be used without Result data")
+    if result.is_ok():
+        pass
+    else:
+        pass
+    return _Ok()
+
 def export(self, args):
     return self._cmd_reg["declare"](self, ["-x"] + args)
 
@@ -88,3 +100,15 @@ def rmmod(runtime, args):
             runtime._mod_assoc.pop(x, None)
             _root.lib.functions.module.unimport_mod(mod, x)
     return _Ok()
+
+__MUTATE = {
+    "vars": [],
+    # funtions: [PRESTART, POSTSTART]
+    "functions": [[], [_jmp_mutate]]
+}
+
+#__EXPORTABLE = {
+#   "functions": {"cmd_name": function} or [function],
+#   "vars": {"var_name": actuall_var}
+#   "other": {"author": author, "version": version}
+#}

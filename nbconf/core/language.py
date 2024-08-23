@@ -2,9 +2,9 @@
 Language model code for nbconf
 '''
 
-from .runtime import LegacyRuntime
-from ..utils import printf
-from ..utils import structs
+from nbconf.core.runtime import LegacyRuntime
+from nbconf.lib.io import printf
+from nbconf.lib import structs
 
 import string
 import re

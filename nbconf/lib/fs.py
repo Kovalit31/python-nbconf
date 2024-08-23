@@ -1,8 +1,8 @@
 '''
 Filesystem library
 '''
-from ..utils import random_uuid
-from ..utils.structs import Err, Ok, Result
+from .utils import random_uuid
+from .structs import Err, Ok, Result
 
 import os
 import shutil
