@@ -51,13 +51,17 @@ def __seeker(what: object):
             except Exception as e:
                 __debugprint(f"not supported: {str(e)}")
         else:
-            if not x in dir(_temp[-1]):
+            if x.startswith("\\"):
+                a = x.lstrip("\\")
+            else:
+                a = x
+            if not a in dir(_temp[-1]):
                 __debugprint("no attribute associated")
                 continue
-            __debugprint(str(getattr(_temp[-1], x)))
+            __debugprint(str(getattr(_temp[-1], a)))
 
 class _Ok():
-    data = None
+    _data = None
     def is_ok(self):
         return True
     def is_err(self):
@@ -72,3 +76,10 @@ def module_seek(_, __):
 def runtime_seek(runtime, __):
     __seeker(runtime)
     return _Ok()
+
+__EXPORTABLE = {
+    "other": {
+        "author": __autor__,
+        "version": __version__
+    }
+}

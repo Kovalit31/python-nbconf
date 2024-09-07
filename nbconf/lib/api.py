@@ -2,8 +2,7 @@
 API library
 '''
 from .structs import Ok
-from .io import printf
-from .conf import get_conf
+from .conf import get_flag
 
 def can_disable(*flags):
     '''
@@ -14,9 +13,25 @@ def can_disable(*flags):
         def wrapper(*args, **kwargs):
             runtime = args[0] # Declared by API
             for flag in flags:
-                enabled = get_conf(runtime, flag)
-                if not enabled and enabled is not None:
-                    printf("Permanently disabled", runtime=runtime, level="e")
+                is_flag = get_flag(runtime, flag)
+                if is_flag and is_flag is not None:
+                    runtime._print.error("Permanently disabled")
+                    return Ok()
+            return func(*args, **kwargs)
+        return wrapper
+    return wrap
+
+def can_enable(*flags):
+    '''
+    This is as can_disable functions, but vice versa
+    '''
+    def wrap(func):
+        def wrapper(*args, **kwargs):
+            runtime = args[0] # Declared by API
+            for flag in flags:
+                is_flag = get_flag(runtime, flag)
+                if not is_flag or is_flag is None:
+                    runtime._print.error("Permanently disabled")
                     return Ok()
             return func(*args, **kwargs)
         return wrapper

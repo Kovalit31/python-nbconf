@@ -10,22 +10,26 @@ from . import core
 from . import lib
 import os
 
-
 reg = {
-    "struct.Result": lib.structs.Result,
-    "struct.Result.Ok": lib.structs.Ok,
-    "struct.Result.Err": lib.structs.Err,
-    "lib.io.print": lib.io.printf,
+    "lib.struct.Result": lib.structs.Result,
+    "lib.struct.Result.Ok": lib.structs.Ok,
+    "lib.struct.Result.Err": lib.structs.Err,
     "lib.fs.object.File": lib.fs.File,
     "lib.fs.object.Dir": lib.fs.Dir,
-    "lib.api.function.can_disable": lib.api.can_disable,
-    "core.config.get": lib.conf.get_conf,
-    "core.runtime.RuntimeData": core.runtime.RuntimeData,
-    "core.runtime.SetupRuntime": core.runtime.SetupRuntime,
-    "lib.functions.get_relroot": lib.utils.get_relroot,
-    "lib.functions.module.import_mod": lib.imp.import_module,
-    "lib.functions.module.unimport_mod": lib.imp.unimport_module,
-    "var.const.default_mods": os.path.join(os.path.dirname(__file__), "mods"),
+    "lib.functions.api.can_disable": lib.api.can_disable,
+    "lib.functions.api.can_enable": lib.api.can_enable,
+    "lib.core.config.get_section": lib.conf.get_conf,
+    "lib.core.config.get_flag": lib.conf.get_flag,
+    "lib.core.runtime.RuntimeData": core.runtime.RuntimeData,
+    "lib.core.runtime.SetupRuntime": core.runtime.SetupRuntime,
+    "lib.functions.runtime.get_relroot": lib.utils.get_relroot,
+    "lib.functions.utils.char_indexes": lib.utils.char_indexes,
+    "lib.functions.module.import_mod_file": lib.imp.import_module,
+    "lib.functions.module.unimport_mod_file": lib.imp.unimport_module,
+    "lib.functions.module.import_mod_data": core.modimport.resolve_symbol,
+    # TODO Unimporting data
+    "var.const.core.mod_import.default_mods": os.path.join(os.path.dirname(__file__), "mods"),
+    "var.const.core.mod_import.default_helpers": core.modimport.DEFAULT_HELPERS,
 }
 
 def setup_runtime() -> None:

@@ -55,7 +55,6 @@ class Ok(Result):
     '''
     def __init__(self, *packet_data) -> None:
         super().__init__()
-        self._ok = True
         if (a:=len(packet_data)) == 0:
             self._data = None
         elif a == 1:
@@ -69,6 +68,7 @@ class Err(Result):
     '''
     def __init__(self, error: object = None) -> None:
         super().__init__()
+        self._ok = False
         if isinstance(error, BaseException):
             self._err = error
         elif isinstance(error, str):

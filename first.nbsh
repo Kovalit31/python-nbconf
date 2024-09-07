@@ -1,0 +1,3 @@
+#!/usr/local/bin/nbconf
+export lol=MY_FISRT_DATA
+echo ?lol?

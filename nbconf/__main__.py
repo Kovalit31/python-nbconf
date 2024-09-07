@@ -21,6 +21,12 @@ def _parse() -> argparse.Namespace:
 def main() -> None:
     _main(_parse())
 
+def _cmd_apply_mutate(mutator, runtime, additional):
+    runtime._critical = False
+
+def _cmd_revert_mutate(mutator, runtime, additional):
+    runtime._critical = True
+
 def _main(args: argparse.Namespace) -> None:
     from . import setup_runtime
     runtime.LegacyRuntime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
@@ -30,7 +36,10 @@ def _main(args: argparse.Namespace) -> None:
     _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), os.path.join(os.path.dirname(__file__), "mods"))
     _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), conf.get_conf(_runtime,"modules"))
     _runtime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
+    _runtime._locale.add_path(os.path.join(os.path.dirname(__file__), "locale"))
     if args.config is None and args.FILE is None:
+        _runtime._mutate.register_apply_mutate(1, _cmd_apply_mutate)
+        _runtime._mutate.register_clear_mutate(1, _cmd_revert_mutate)
         _cmds = ""
         while True:
             try:

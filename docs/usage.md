@@ -22,8 +22,8 @@ Example:<br>
 ```
 import nbconf_root
 
-def hello_world(_, _):
-    print("Hello world!")
+def hello_world(runtime, _):
+    runtime._print.info("Hello world!")
     return nbconf_root.struct.Result.Ok()
 ```
 More tutor on this you can get [here](api/index.md).

@@ -38,9 +38,10 @@ class MutateData:
     And then use..
     '''
     _private_data = {}
-    _stages = []
+    _apply_stages = []
     _mutate_pattern = {}
     _mutate_vars = {}
+    _clear_stages = []
 
     def register_mutate_pattern(self, mutate_pattern: dict):
         '''
@@ -48,7 +49,10 @@ class MutateData:
         You always need this to do, if you are adding new variables
         @param mutate_pattern - Pattern in style {"variable": type}
         '''
-        self._mutate_pattern.update(mutate_pattern)
+        try:
+            self._mutate_pattern.update(mutate_pattern)
+        except Exception as e:
+            return Err(e)
         return Ok()
 
     def register_mutate_var(self, mutate_var, data=None):
@@ -71,7 +75,7 @@ class MutateData:
         self._mutate_vars[mutate_var] = data
         return Ok()
 
-    def register_mutate(self, stage, func, after=None, before=None):
+    def register_apply_mutate(self, stage, func, after=None, before=None):
         '''
         Registers mutate functions.
         @param stage - stage
@@ -79,13 +83,50 @@ class MutateData:
         @param after - Not implemented
         @param before - Not implemented
         '''
-        if len(self._stages) <= stage:
-            self._stages = self._stages + [[]] * (stage - len(self._stages) + 1)
+        if len(self._apply_stages) <= stage:
+            for _ in range(stage - len(self._apply_stages) + 1):
+                self._apply_stages.append([])
         if after is None and before is None:
-            self._stages[stage].append(func)
+            self._apply_stages[stage].append(func)
             return Ok()
         return Err(NotImplementedError("Before and after currently unimplemented"))
         
+    def register_mutate_var(self, mutate_var, data=None):
+        '''
+        Registeres variable.
+        It can be used with only once per command, then you need to empty _mutate_vars.
+        You can register each variable. You don't need register unused variables
+        @param mutate_var - Variable
+        @param data - Data used, if type of variable is not bool
+        '''
+        if not mutate_var in self._mutate_pattern:
+            return Err("Register pattern for {} first".format(mutate_var))
+        if self._mutate_pattern[mutate_var] != bool and data is None:
+            return Err("Register data for non-boolean type {} cannot be None".format(mutate_var))
+        if self._mutate_pattern[mutate_var] == bool:
+            self._mutate_vars[mutate_var] = True
+            return Ok()
+        if not isinstance(data, self._mutate_pattern[mutate_var]):
+            return Err(NotImplementedError("Type casting not implemented yet"))
+        self._mutate_vars[mutate_var] = data
+        return Ok()
+
+    def register_clear_mutate(self, stage, func, after=None, before=None):
+        '''
+        Registers mutate clearing functions.
+        @param stage - stage
+        @param func - func
+        @param after - Not implemented
+        @param before - Not implemented
+        '''
+        if len(self._clear_stages) <= stage:
+            for _ in range(stage - len(self._clear_stages) + 1):
+                self._clear_stages.append([])
+        if after is None and before is None:
+            self._clear_stages[stage].append(func)
+            return Ok()
+        return Err(NotImplementedError("Before and after currently unimplemented"))
+
     def apply_mutate(self, stage, runtime, additional=None):
         '''
         Applies mutates for stage.
@@ -95,11 +136,33 @@ class MutateData:
         @param additional - Some additional data
         Additional data is used by POSTSTART mutate, and it is Ok | Err instance
         '''
-        if len(self._stages) <= stage:
+        if len(self._apply_stages) <= stage:
             # Probably we doesn't registered mutate functions, so abort exec
             return Err("Stage not initializated")
         errored = []
-        for x in self._stages[stage]:
+        if stage > 0:
+            self.clear_mutate(stage-1, runtime, additional)
+        for x in self._apply_stages[stage]:
+            try:
+                x(self, runtime, additional)
+            except:
+                errored.append(x)
+        return Ok(errored)
+
+    def clear_mutate(self, stage, runtime, additional=None):
+        '''
+        Clears mutates for stage.
+        Run after pattern registring, function registring, variable registring (for every command) for correct stage and applying mutates
+        @param stage - Stage
+        @param runtime - Current runtime
+        @param additional - Some additional data
+        Additional data is used by POSTSTART clear mutate, and it is Ok | Err instance
+        '''
+        if len(self._clear_stages) <= stage:
+            # Probably we doesn't registered mutate functions, so abort exec
+            return Err("Stage not initializated")
+        errored = []
+        for x in self._clear_stages[stage]:
             try:
                 x(self, runtime, additional)
             except:

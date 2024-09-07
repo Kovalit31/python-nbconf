@@ -17,20 +17,6 @@ def clean_empty(data: list) -> list:
         data.pop(y)
     return data
 
-
-def resolve_jump(cur: int, jmp_data: dict[str, int], is_pos: bool) -> int:
-    _i = cur + 1
-    suf = "pos" if is_pos else "neg"
-    if jmp_data[f"jmp_{suf}"]:
-        _i = jmp_data[f"jmp_{suf}"]
-    elif jmp_data[f"jmp_n"]:
-        _i = jmp_data[f"jmp"]
-    elif jmp_data[f"jmp_r{suf}"]:
-        _i += jmp_data[f"jmp_r{suf}"]
-    elif jmp_data[f"jmp_rn"]:
-        _i += jmp_data[f"jmp_rn"]
-    return _i
-
 def random_uuid(length=20) -> str:
     """
     Generates uuid from digits and lowercase ascii letters
@@ -95,5 +81,20 @@ def get_relroot(root: str, path: str) -> str:
     else:
         s1, s2 = remove_same(root, path)
         rel_root = "/"*(("/"+s1.lstrip("/")).count("/"))+s2 if len(s1) > 0 else s2
-    rel_root = "nbconf_root" if len(rel_root) == 0 else "nbconf_root/"+rel_root
+    rel_root = "nbconf_mod_root" if len(rel_root) == 0 else "nbconf_mod_root/"+rel_root
     return rel_root
+
+def get_dict_keys(dictionary: dict) -> list:
+    if not type(dictionary) == dict:
+        return []
+    output = [x for x in dictionary.keys()]
+    return output # TODO Remove this function
+
+def char_indexes(string: str, char: str) -> int:
+    list_of = [*string]
+    try:
+        start = list_of.index(char)
+        end = list_of[::-1].index(char)
+        return start, len(list_of)-1-end
+    except Exception as e:
+        return -1, -1

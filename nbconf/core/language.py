@@ -4,7 +4,6 @@ Language model code for nbconf
 
 from dataclasses import dataclass
 from nbconf.core.runtime import LegacyRuntime
-from nbconf.lib.io import printf
 
 import string
 import re
@@ -42,7 +41,7 @@ def tokenize(data):
     start = 0
     quote = False
     double = False
-    for tok in re.finditer(tok_regex, data):
+    for tok in re.finditer(tok_regex, data, re.MULTILINE):
         _type = tok.lastgroup
         value = tok.group()
         _column = tok.start() - start
@@ -72,7 +71,7 @@ def tokenize(data):
                 __column += 1
             continue
         elif _type == "MISMATCH":
-            printf(f"Mismatch at line {line}:{_column}!", runtime=LegacyRuntime, level='d')
+            LegacyRuntime._print.debug(f"Mismatch at line {line}:{_column}!")
             continue
         elif _type == "COMMENT":
             continue
@@ -118,23 +117,23 @@ def jit(runtime, cmd):
                 _data = tok.value[1:-1]
                 _ret = None
                 if len(_data) > 4 and _data[::len(_data)-1] == "()":
-                    printf(f"Inline command detected at {tok.column}", runtime=runtime, level='d')
+                    runtime._print.debug(f"Inline command detected at {tok.column}")
                     run(runtime, _data[1:-1])
                     _ret = runtime._variables["<<"]
-                    printf(str(_ret), runtime=runtime, level='d')
+                    runtime._print.debug(str(_ret))
                 else:
                     if len(_data) > 4 and _data[::len(_data)-1] == "{}":
                         _data = _data[1:-1]
                     try:
                         _ret = runtime._variables[_data]
                     except KeyError:
-                        printf(f"May be incorrect: {_data} variable returned None", runtime=runtime, level='d')
+                        runtime._print.debug(f"May be incorrect: {_data} variable returned None")
                         pass
             if not join:
                 if len(ret[ppos][-1].strip()) > 0:
                     ret[ppos].append("")
             if _ret is not None:
-                ret[ppos][-1] += _ret
+                ret[ppos][-1] += str(_ret)
         if len(ret[-1]) == 1 and len(ret[-1][-1]) == 0:
             ret[-1] = []
     return ret

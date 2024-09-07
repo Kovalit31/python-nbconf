@@ -19,3 +19,10 @@ def get_conf(runtime, section: str) -> object:
         return None
     return conf[section]
 
+def get_flag(runtime, flag: str) -> object:
+    flag_section = get_conf(runtime, "flags")
+    if flag_section is None:
+        return None
+    if not flag in flag_section:
+        return False
+    return True

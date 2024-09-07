@@ -1,7 +1,7 @@
 import nbconf_root as _root # type: ignore
 
-_Ok = _root.struct.Result.Ok
-_Err = _root.struct.Result.Err
+_Ok = _root.lib.struct.Result.Ok
+_Err = _root.lib.struct.Result.Err
 
 def mkdir(self, args):
     return _Ok()

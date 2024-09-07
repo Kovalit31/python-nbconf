@@ -1,5 +1,4 @@
 from typing import Callable
-from nbconf.lib.io import printf
 from nbconf.lib.structs import Err, Ok
 
 def _set_exportable(self, symbol, mod):
@@ -19,7 +18,7 @@ def _set_exportable(self, symbol, mod):
             for x, y in functions.items():
                 if x in self._cmd_reg:
                     from nbconf.core.runtime import LegacyRuntime
-                    printf("Can't register, already registered: {}".format(x), LegacyRuntime, level='d')
+                    LegacyRuntime._print.debug("Can't register, already registered: {}".format(x))
                     continue
                 if mod in self._mod_func:
                     self._mod_func[mod].append(x)
@@ -40,7 +39,20 @@ def _set_exportable(self, symbol, mod):
     return Ok()
 
 def _set_mutate(self, symbol, mod):
-    return Err()
+    if symbol != "__MUTATE":
+        return Err()
+    mutate = getattr(mod, symbol)
+    if "vars" in mutate:
+        self._mutate.register_mutate_pattern(mutate["vars"])
+    if "apply" in mutate:
+        for pos, x in enumerate(mutate["apply"]):
+            for y in x:
+                self._mutate.register_apply_mutate(pos, y)
+    if "clear" in mutate:
+        for pos, x in enumerate(mutate["clear"]):
+            for y in x:
+                self._mutate.register_clear_mutate(pos, y)
+    return Ok()
 
 def _set_function(self, symbol, mod):
     if symbol.startswith("_"):
