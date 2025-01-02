@@ -71,7 +71,7 @@ def tokenize(data):
                 __column += 1
             continue
         elif _type == "MISMATCH":
-            LegacyRuntime._print.debug(f"Mismatch at line {line}:{_column}!")
+            LegacyRuntime.print.debug(f"Mismatch at line {line}:{_column}!")
             continue
         elif _type == "COMMENT":
             continue

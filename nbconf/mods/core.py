@@ -2,13 +2,14 @@ import subprocess
 import nbconf_root as _root # type: ignore
 import sys
 import os
+import re
 
 _Ok = _root.lib.struct.Result.Ok
 
 # ---------- Mutate ----------- #
 
 def _jmp_mutate(self, runtime, additional):
-    cur = runtime.next - 1
+    cur = runtime._next - 1
     result = additional
     if result is None:
         return _root.lib.struct.Result.Err("jmp_mutate can't be used without Result data")
@@ -29,6 +30,13 @@ def _jmp_mutate(self, runtime, additional):
         return _Ok()
     runtime._next = _i
     return _Ok()
+
+# ----------    Casting    ----------- #
+
+def str_to_int(string: str):
+    if not re.match("^[+-]?\d+$", string.strip()):
+        return _root.lib.struct.Result.Err("Input data not correct")
+    return int(string)
 
 # ---------- Base commands ----------- #
 def export(self, args):
@@ -116,40 +124,41 @@ def insmod(runtime, args):
 @_root.lib.functions.api.can_disable("disable_ext_rdmod", "disable_ext_insmod", "disable_ext_rmmod")
 def rdmod(runtime, args):
     for x in args:
-        if not x in runtime._mod_assoc:
+        if not x in runtime._mod["assoc"]:
             continue
-        path = runtime._mod_path[runtime._mod_assoc[x]]
+        path = runtime._mod["path"][runtime._mod["assoc"][x]]
         rmmod(runtime, [x])
         insmod(runtime, [path])
     return _Ok()
 
 def lsmod(runtime, args):
     if len(args) == 0:
-        a = ' '.join([x for x in runtime._mod_assoc.keys()])
+        a = ' '.join([x for x in runtime._mod["assoc"].keys()])
     else:
         a = []
         for x in args:
-            if x in runtime._mod_assoc:
+            if x in runtime._mod["assoc"]:
                 a.append(x)
             else:
-                runtime._print.error(x+": No such module") # Error
+                runtime._print.error(runtime._locale.message(runtime, "io.github.kovalit31.nbconf.mod.core.lsmod.mod_not_found").format(module=x)) # Error
     runtime._print.info(f"Imported modules: {a}")
     return _Ok(a)
 
 @_root.lib.functions.api.can_disable("disable_ext_rmmod")
 def rmmod(runtime, args):
     for x in args:
-        if x in runtime._mod_assoc:
-            mod = runtime._mod_assoc[x]
-            for y in runtime._mod_func[runtime._mod_assoc[x]]:
+        if x in runtime._mod["assoc"]:
+            mod = runtime._mod["assoc"][x]
+            for y in runtime._mod["func"][runtime._mod["assoc"][x]]:
                 b = runtime._cmd_reg.pop(y, None)
                 del(b)
-            runtime._mod_assoc.pop(x, None)
+            runtime._mod["assoc"].pop(x, None)
             _root.lib.functions.module.unimport_mod_file(mod, x)
     return _Ok()
 
 # -------------- Locale ----------------- #
 
+# TODO May be disabled?
 def locale_reload(runtime, args):
     return runtime._locale.reload_paths()
 
@@ -165,12 +174,16 @@ __MUTATE = {
         "jmp_rneg": int
     },
     # apply/clear: [PRESTART, POSTSTART]
-    "apply": [[], [_jmp_mutate]]
+    "apply": [[], [_jmp_mutate]],
+    "casting": [[str, int, str_to_int]]
 }
 
 __EXPORTABLE = {
     "other": {
         "author": "Kovalit31",
         "version": "0.0.1-b"
-    }
+    },
+    "locale": [
+        "lang/c.po"
+    ]
 }

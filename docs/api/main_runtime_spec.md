@@ -19,10 +19,9 @@ runtime._cmd_reg["my_func"] = my_func # CAUTION: Do not place parenteses after f
 
 - RuntimeData._cmd_reg: dict[str, function] - Map between command-line commands and they handler functions
 - RuntimeData._variables: dict[str, Any] - Map between command-line variables and some data
-- RuntimeData._mod_aliases: dict[str, str] - Aliases for modded command execution
-- RuntimeData._mod_func: dict[Module, list[str]] - Map between modules and their functions names
-- RuntimeData._mod_assoc: dict[str, Module] - Map between module names and theirs modules
-- RuntimeData._mod_path: dict[Module, str] - Map between module and his location path
+- RuntimeData._mod["func"]: dict[Module, list[str]] - Map between modules and their functions names
+- RuntimeData._mod["assoc"]: dict[str, Module] - Map between module names and theirs modules
+- RuntimeData._mod["path"]: dict[Module, str] - Map between module and his location path
 - RuntimeData._mutate: MutateData - Mutator, defined for this runtime
 - RuntimeData._next: int - Next command index (Must be processed by runner and/or by MutateData)
 - RuntimeData._instructions - Current instructions (Must be defined by runner)
@@ -55,9 +54,8 @@ runtime._variables["VAR"] = "somerandomtext"
 # Getting variable
 print(runtime._variables["VAR"])
 ```
-++++++++<br>
+
 CAUTION!<br>
-++++++++<br>
 1. You mustn't print (leak) variables (also in debug!)
 2. You mustn't use variables like PWD or smth like, use internal functions! These variables only for scripting!
 3. You have to not use non-predefined variables without checking
@@ -65,7 +63,7 @@ CAUTION!<br>
 
 ### RuntimeData._import_mods
 
-Function that tries to load all (!) py files from module_path. Can fail) <br>
+Function that tries to load all (!) py files from module_path. May fail <br>
 Example: <br>
 ```python
 runtime = nbconf_root.runtime.RuntimeData()

@@ -6,7 +6,8 @@ __MUTATE = {
     "vars": {
         "variable": type
     },
-    "functions": [[function1], [function2]] # For each stage it's own array
+    "apply" (or "clear"): [[function1], [function2]], # For each stage it's own array
+    "casting": [[in_type, out_type, function]]
 }
 
 Function signature need to be 'func_name(MutateData, Runtime, Ok | Err)'
@@ -42,6 +43,7 @@ class MutateData:
     _mutate_pattern = {}
     _mutate_vars = {}
     _clear_stages = []
+    _type_casting = {}
 
     def register_mutate_pattern(self, mutate_pattern: dict):
         '''
@@ -53,6 +55,18 @@ class MutateData:
             self._mutate_pattern.update(mutate_pattern)
         except Exception as e:
             return Err(e)
+        return Ok()
+
+    def register_casting(self, in_type, out_type, function):
+        '''
+        Registeres type casting function.
+        Function type need to be **target** type return
+        '''
+        if not out_type in self._type_casting:
+            self._type_casting[out_type] = {}
+        if in_type in self._type_casting[out_type]:
+            return Err(f"In-type {str(in_type)} is registered for out-type {str(out_type)}! Unregister it before registering again!")
+        self._type_casting[out_type][in_type] = function
         return Ok()
 
     def register_mutate_var(self, mutate_var, data=None):
@@ -71,7 +85,14 @@ class MutateData:
             self._mutate_vars[mutate_var] = True
             return Ok()
         if not isinstance(data, self._mutate_pattern[mutate_var]):
-            return Err(NotImplementedError("Type casting not implemented yet"))
+            if not self._mutate_pattern[mutate_var] in self._type_casting:
+                return Err(f"No type casting functions for output type {str(self._mutate_pattern[mutate_var])}")
+            if not type(data) in self._type_casting[self._mutate_pattern[mutate_var]]:
+                return Err(f"No type casting functions for input type {str(type(data))}")
+            try:
+                data = self._type_casting[self._mutate_pattern[mutate_var]][type(data)](data) # Only input
+            except Exception as e:
+                return Err(f"Casting failed: {e}")
         self._mutate_vars[mutate_var] = data
         return Ok()
 
@@ -90,26 +111,6 @@ class MutateData:
             self._apply_stages[stage].append(func)
             return Ok()
         return Err(NotImplementedError("Before and after currently unimplemented"))
-        
-    def register_mutate_var(self, mutate_var, data=None):
-        '''
-        Registeres variable.
-        It can be used with only once per command, then you need to empty _mutate_vars.
-        You can register each variable. You don't need register unused variables
-        @param mutate_var - Variable
-        @param data - Data used, if type of variable is not bool
-        '''
-        if not mutate_var in self._mutate_pattern:
-            return Err("Register pattern for {} first".format(mutate_var))
-        if self._mutate_pattern[mutate_var] != bool and data is None:
-            return Err("Register data for non-boolean type {} cannot be None".format(mutate_var))
-        if self._mutate_pattern[mutate_var] == bool:
-            self._mutate_vars[mutate_var] = True
-            return Ok()
-        if not isinstance(data, self._mutate_pattern[mutate_var]):
-            return Err(NotImplementedError("Type casting not implemented yet"))
-        self._mutate_vars[mutate_var] = data
-        return Ok()
 
     def register_clear_mutate(self, stage, func, after=None, before=None):
         '''
@@ -132,7 +133,7 @@ class MutateData:
         Applies mutates for stage.
         Run after pattern registring, function registring, variable registring (for every command) for correct stage
         @param stage - Stage
-        @param runtime - Current runtime
+        @param runtime - Current runtime  
         @param additional - Some additional data
         Additional data is used by POSTSTART mutate, and it is Ok | Err instance
         '''
@@ -145,9 +146,12 @@ class MutateData:
         for x in self._apply_stages[stage]:
             try:
                 x(self, runtime, additional)
-            except:
+            except Exception as e:
+                runtime._print.debug(str(e))
                 errored.append(x)
-        return Ok(errored)
+        if errored:
+            return Err(f"Errors in these function processing: {str(errored)}")
+        return Ok()
 
     def clear_mutate(self, stage, runtime, additional=None):
         '''
@@ -175,6 +179,4 @@ class MutateData:
         '''
         if not mutate_var in self._mutate_pattern:
             return Err("Register pattern for {} firstly".format(mutate_var))
-        if self._mutate_pattern[mutate_var] == bool:
-            return Ok(False)
-        return Ok(True)
+        return Ok(self._mutate_pattern[mutate_var] != bool)

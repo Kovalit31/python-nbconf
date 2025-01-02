@@ -8,15 +8,6 @@ import os
 class Empty():
     pass
 
-def clean_empty(data: list) -> list:
-    _p = []
-    for pos, x in enumerate(data):
-        if len(x.strip() if isinstance(x, str) else x) == 0:
-            _p.append(pos-len(_p))
-    for y in _p:
-        data.pop(y)
-    return data
-
 def random_uuid(length=20) -> str:
     """
     Generates uuid from digits and lowercase ascii letters
@@ -83,12 +74,6 @@ def get_relroot(root: str, path: str) -> str:
         rel_root = "/"*(("/"+s1.lstrip("/")).count("/"))+s2 if len(s1) > 0 else s2
     rel_root = "nbconf_mod_root" if len(rel_root) == 0 else "nbconf_mod_root/"+rel_root
     return rel_root
-
-def get_dict_keys(dictionary: dict) -> list:
-    if not type(dictionary) == dict:
-        return []
-    output = [x for x in dictionary.keys()]
-    return output # TODO Remove this function
 
 def char_indexes(string: str, char: str) -> int:
     list_of = [*string]

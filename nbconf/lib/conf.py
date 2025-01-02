@@ -9,7 +9,7 @@ import os
 DEFAULT_FILE_NAME = "nbconf.json"
 
 def get_conf(runtime, section: str) -> object:
-    full_path = runtime._variables["CONF"] if not os.path.isdir(runtime._variables["CONF"]) else os.path.join(runtime._variables["CONF"], DEFAULT_FILE_NAME)
+    full_path = runtime.exported_var["CONF"] if not os.path.isdir(runtime.exported_var["CONF"]) else os.path.join(runtime.exported_var["CONF"], DEFAULT_FILE_NAME)
     try:
         file = File(full_path, touch=False)
         conf = json.loads("".join(file.read().unwrap()).replace("\n", "")) # type: ignore

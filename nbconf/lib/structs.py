@@ -2,8 +2,6 @@
 Structures and classes
 '''
 
-from dataclasses import dataclass
-
 # =============================
 #          Exceptions
 # =============================

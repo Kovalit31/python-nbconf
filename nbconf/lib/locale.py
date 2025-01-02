@@ -2,7 +2,6 @@ import os
 import copy
 
 from .fs import File
-from .utils import get_dict_keys
 from .conf import get_conf
 from .structs import Err, Ok
 
@@ -111,7 +110,7 @@ class LocaleParse:
                 for y in range(len(_temp)):
                     if len(_data) == y:
                         _data.append(dict())
-                    if not ".".join(_temp[:y+1]) in get_dict_keys(_data[y]):
+                    if not ".".join(_temp[:y+1]) in _data[y]:
                         if y != 0:
                             _data[y-1][".".join(_temp[:y])].append(".".join(_temp[:y+1]))
                         _data[y][".".join(_temp[:y+1])] = [None]
@@ -129,10 +128,10 @@ class LocaleParse:
         for x in range(len(_temp)):
             if len(data) == x:
                 return
-            if not ".".join(_temp[:x+1]) in get_dict_keys(data[x]):
+            if not ".".join(_temp[:x+1]) in data[x]:
                 if x == 0:
                    return
-                if not ".".join(_temp[:x]+["*"]) in get_dict_keys(data[x]):
+                if not ".".join(_temp[:x]+["*"]) in data[x]:
                     return
                 else:
                     auto = _temp[x]

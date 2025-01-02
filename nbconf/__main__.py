@@ -5,6 +5,7 @@ Main runner
 from .core import runtime
 from .lib import conf
 from .lib import fs
+from .core import language
 
 import os
 import sys
@@ -28,26 +29,29 @@ def _cmd_revert_mutate(mutator, runtime, additional):
     runtime._critical = True
 
 def _main(args: argparse.Namespace) -> None:
-    from . import setup_runtime
-    runtime.LegacyRuntime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
-    setup_runtime()
-    _runtime = runtime.RuntimeData()
-    _runtime._variables["CONF"] = _runtime._variables["PWD"] if args.config is None else args.config
-    _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), os.path.join(os.path.dirname(__file__), "mods"))
-    _runtime._import_mods(os.path.join(os.path.dirname(__file__), "mods"), conf.get_conf(_runtime,"modules"))
-    _runtime._variables.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
+    from . import reg
+    runtime.LegacyRuntime.exported_var.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
+    _runtime = runtime.RuntimeData(language.gen, language.jit)
+    _runtime.setup_runtime(reg)
+    _runtime.exported_var["CONF"] = _runtime.exported_var["PWD"] if args.config is None else args.config
+    _runtime.exported_var.update({"DEBUG": args.debug, "VERBOSE": args.verbose})
+    _runtime.importer.default_path = os.path.join(os.path.dirname(__file__), "mods")
+    _runtime.importer._import_module_path(_runtime, os.path.join(os.path.dirname(__file__), "mods"))
+    _runtime.importer._import_module_path(_runtime, conf.get_conf(_runtime,"modules"))
     _runtime._locale.add_path(os.path.join(os.path.dirname(__file__), "locale"))
     if args.config is None and args.FILE is None:
-        _runtime._mutate.register_apply_mutate(1, _cmd_apply_mutate)
-        _runtime._mutate.register_clear_mutate(1, _cmd_revert_mutate)
+        _runtime.mutator.register_apply_mutate(1, _cmd_apply_mutate)
+        _runtime.mutator.register_clear_mutate(1, _cmd_revert_mutate)
         _cmds = ""
         while True:
             try:
-                _cmds = input(_runtime._variables["PS1"])
-            except:
+                _cmds = input(_runtime.exported_var["PS1"])
+                runtime.run(_runtime, _cmds)
+            except (SystemExit, EOFError):
                 print()
+                sys.exit()
+            except:
                 continue
-            runtime.run(_runtime, _cmds)
     if args.FILE is not None:
         script = "".join(fs.File(args.FILE, touch=False).read().unwrap()) # type: ignore
         runtime.run(_runtime, script)

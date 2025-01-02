@@ -34,9 +34,9 @@ class Print:
             "v": ".",
             "c": "`",
         }
-        if _level == 'd' and not self.runtime._variables["DEBUG"]:
+        if _level == 'd' and not self.runtime.exported_var["DEBUG"]:
             return
-        if _level == 'v' and not self.runtime._variables["VERBOSE"]:
+        if _level == 'v' and not self.runtime.exported_var["VERBOSE"]:
             return
         msg = f"[{_levels[_level] if _level in _levels else '?'}] {string}".replace("\n", "\n[`] ")
         self._stdout(msg)

@@ -2,6 +2,8 @@
 
 This documentation is used to describe NBConf system.
 
+!!! DOCUMETATION OUTDATED !!!
+
 - [Usage](usage.md)
 - [API](api/index.md)
   - [Runtime specification](api/runtime_spec.md)
