@@ -81,5 +81,5 @@ def char_indexes(string: str, char: str) -> int:
         start = list_of.index(char)
         end = list_of[::-1].index(char)
         return start, len(list_of)-1-end
-    except Exception as e:
+    except Exception:
         return -1, -1

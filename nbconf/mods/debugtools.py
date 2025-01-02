@@ -1,6 +1,10 @@
-import nbconf_root # type: ignore
+try:
+    import nbconf_root # type: ignore
+    module = True
+except:
+    module = False
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __autor__ = "Kovalit31"
 
 '''
@@ -69,9 +73,10 @@ class _Ok():
     def unwrap(self):
         return None
 
-def module_seek(_, __):
-    __seeker(nbconf_root)
-    return _Ok()
+if module:
+    def module_seek(_, __):
+        __seeker(nbconf_root)
+        return _Ok()
 
 def runtime_seek(runtime, __):
     __seeker(runtime)

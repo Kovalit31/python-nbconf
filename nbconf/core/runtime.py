@@ -5,7 +5,7 @@ Runtime initialization and lifetime
 import sys
 import os
 
-from nbconf.core.modimport import ModImporter
+from nbconf.core.modimport import ModImporter, DEFAULT_HELPERS
 from nbconf.core.mutate import MutateData
 
 from nbconf.lib.utils import set_rattr
@@ -44,7 +44,7 @@ class RuntimeData:
         self.mutator = MutateData()
         self._locale = LocaleParse()
         self.print = Print(self)
-        self.importer = ModImporter(os.path.join(os.path.dirname(__file__), "mods"))
+        self.importer = ModImporter(os.path.join(os.path.dirname(__file__), "mods"), DEFAULT_HELPERS)
         self.instructions = [[], 1] # [ instructions, next_instruction ]
         self.private_var = {}
         self._critical = True
@@ -75,12 +75,12 @@ def run(runtime: RuntimeData, data: str):
     runtime.instructions[1] = 0
     runtime.print.debug(runtime.instructions)
     result = None
-    while runtime.instructions[1] < len(runtime.instructions):
-        cur_command = runtime.language["compiler"](runtime, runtime.instructions[runtime._next])
+    while runtime.instructions[1] < len(runtime.instructions[0]):
+        cur_command = runtime.language["compiler"](runtime, runtime.instructions[0][runtime.instructions[1]])
         runtime.instructions[1] += 1
         
         if len(cur_command[0]) == 0:
-            runtime.print.debug(f"There is no command at {runtime._next - 1}")
+            runtime.print.debug(f"There is no command at {runtime.instructions[1]}")
             continue
         
         wait_next = False
@@ -96,8 +96,8 @@ def run(runtime: RuntimeData, data: str):
         runtime.mutator.apply_mutate(0, runtime)
         try:
             result = runtime.command_registry[cur_command[0][0]](runtime, cur_command[0][1:])
-        except SystemExit:
-            raise SystemExit()
+        except SystemExit as e:
+            raise e
         except Exception as e:
             result = Err(f"Can't run command {cur_command[0][0]}: {str(e)}")
             runtime.print.error(result)

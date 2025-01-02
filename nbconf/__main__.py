@@ -22,10 +22,10 @@ def _parse() -> argparse.Namespace:
 def main() -> None:
     _main(_parse())
 
-def _cmd_apply_mutate(mutator, runtime, additional):
+def _cmd_apply_mutate(_, runtime, __):
     runtime._critical = False
 
-def _cmd_revert_mutate(mutator, runtime, additional):
+def _cmd_revert_mutate(_, runtime, __):
     runtime._critical = True
 
 def _main(args: argparse.Namespace) -> None:
