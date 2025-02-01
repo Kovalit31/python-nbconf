@@ -50,8 +50,6 @@ def _main(args: argparse.Namespace) -> None:
             except (SystemExit, EOFError):
                 print()
                 sys.exit()
-            except:
-                continue
     if args.FILE is not None:
         script = "".join(fs.File(args.FILE, touch=False).read().unwrap()) # type: ignore
         runtime.run(_runtime, script)

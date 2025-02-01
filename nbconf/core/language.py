@@ -36,7 +36,7 @@ def tokenize(data):
             )),
         ("SYM", r'.')
     ]
-    tok_regex = "|".join("(?P<%s>%s)" % pair for pair in spec)
+    tok_regex = "|".join("(?P<%s>%s)" % pair for pair in spec) # (?P<COMMENT>([#].*$|[/][*].*[*][/]).)
     line = 1
     start = 0
     quote = False

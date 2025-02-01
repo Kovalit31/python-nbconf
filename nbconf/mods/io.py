@@ -15,7 +15,7 @@ def echo(self, args):
         parser = argparse.ArgumentParser("echo", exit_on_error=False)
         parser.add_argument("TEXT", nargs="*")
         _args = parser.parse_args(args)
-        self._print.print(" ".join(_args.TEXT), level='n')
+        self.print.print(" ".join(_args.TEXT), level='n')
     except ValueError:
         sys.exit = _exit
         return _Err("Nothing good!")

@@ -15,7 +15,7 @@ def can_disable(*flags):
             for flag in flags:
                 is_flag = get_flag(runtime, flag)
                 if is_flag and is_flag is not None:
-                    runtime._print.error("Permanently disabled")
+                    runtime.print.error("Permanently disabled")
                     return Ok()
             return func(*args, **kwargs)
         return wrapper
@@ -31,7 +31,7 @@ def can_enable(*flags):
             for flag in flags:
                 is_flag = get_flag(runtime, flag)
                 if not is_flag or is_flag is None:
-                    runtime._print.error("Permanently disabled")
+                    runtime.print.error("Permanently disabled")
                     return Ok()
             return func(*args, **kwargs)
         return wrapper

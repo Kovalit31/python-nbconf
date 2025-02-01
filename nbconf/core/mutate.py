@@ -147,7 +147,7 @@ class MutateData:
             try:
                 x(self, runtime, additional)
             except Exception as e:
-                runtime._print.debug(str(e))
+                runtime.print.debug(str(e))
                 errored.append(x)
         if errored:
             return Err(f"Errors in these function processing: {str(errored)}")

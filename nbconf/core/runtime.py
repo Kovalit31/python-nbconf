@@ -93,7 +93,7 @@ def run(runtime: RuntimeData, data: str):
                 wait_next = True
                 continue
         
-        runtime.mutator.apply_mutate(0, runtime)
+        runtime.mutator.apply_mutate(0, runtime).unwrap()
         try:
             result = runtime.command_registry[cur_command[0][0]](runtime, cur_command[0][1:])
         except SystemExit as e:

@@ -9,16 +9,16 @@ _Ok = _root.lib.struct.Result.Ok
 # ---------- Mutate ----------- #
 
 def _jmp_mutate(self, runtime, additional):
-    cur = runtime._next - 1
+    cur = runtime.instructions[1] - 1
     result = additional
     if result is None:
         return _root.lib.struct.Result.Err("jmp_mutate can't be used without Result data")
     _i = cur + 1
     suf = "pos" if result.is_ok() else "neg"
-    runtime._print.debug(suf)
+    runtime.print.debug(suf)
     # suf jump, then relative suf jump, then normal jump, then normal relative jump
     if f"jmp_{suf}" in self._mutate_vars:
-        runtime._print.debug("Works!")
+        runtime.print.debug("Works!")
         _i = self._mutate_vars[f"jmp_{suf}"]
     elif f"jmp_r{suf}" in self._mutate_vars:
         _i += self._mutate_vars[f"jmp_r{suf}"]
@@ -26,9 +26,9 @@ def _jmp_mutate(self, runtime, additional):
         _i = self._mutate_vars["jmp_n"]
     elif "jmp_rn" in self._mutate_vars:
         _i += self._mutate_vars["jmp_rn"]
-    if _i >= len(runtime._instructions) and runtime._next < len(runtime._instructions):
+    if _i >= len(runtime.instructions[0]) and runtime.instructions[1] < len(runtime.instructions[0]):
         return _Ok()
-    runtime._next = _i
+    runtime.instructions[1] = _i
     return _Ok()
 
 # ----------    Casting    ----------- #
@@ -69,7 +69,7 @@ def export(self, args):
     return _Ok()
 
 def help(runtime, _):
-    runtime._print.info(f"Available commands: {' '.join(sorted([x for x in runtime._cmd_reg.keys()]))}")
+    runtime.print.info(f"Available commands: {' '.join(sorted([x for x in runtime._cmd_reg.keys()]))}")
     return _Ok()
 
 def exit(self, args):
@@ -78,19 +78,19 @@ def exit(self, args):
 # ------------ Hello world -------------- #
 @_root.lib.functions.api.can_enable("enable_hello_world")
 def hello_world(runtime, __):
-    runtime._print.debug("Hello world!")
+    runtime.print.debug("Hello world!")
     return _Ok()
 
 @_root.lib.functions.api.can_enable("enable_hello_world")
 def hello(runtime, args):
-    runtime._print.debug(runtime._locale.message(runtime, 'io.github.kovalit31.nbconf.mod.core.hello'))
+    runtime.print.debug(runtime._locale.message(runtime, 'io.github.kovalit31.nbconf.mod.core.hello'))
     return _Ok()
 
 # ------------ Sys exec ------------- #
 
 @_root.lib.functions.api.can_disable("disable_exec")
 def system_exec(runtime, args):
-    runtime._print.debug(args)
+    runtime.print.debug(args)
     a = subprocess.run(args, capture_output=True)
     runtime._print.info(a.stdout.decode())
     if a.stderr:
@@ -121,38 +121,39 @@ def insmod(runtime, args):
             runtime._import_mod(_root.lib.functions.runtime.get_relroot(_root.var.const.core.mod_import.default_mods, os.path.dirname(x)), x)
     return _Ok()
 
+
 @_root.lib.functions.api.can_disable("disable_ext_rdmod", "disable_ext_insmod", "disable_ext_rmmod")
 def rdmod(runtime, args):
     for x in args:
-        if not x in runtime._mod["assoc"]:
+        if not x in runtime.module["assoc"]:
             continue
-        path = runtime._mod["path"][runtime._mod["assoc"][x]]
+        path = runtime.module["path"][runtime.module["assoc"][x]]
         rmmod(runtime, [x])
         insmod(runtime, [path])
     return _Ok()
 
 def lsmod(runtime, args):
     if len(args) == 0:
-        a = ' '.join([x for x in runtime._mod["assoc"].keys()])
+        a = ' '.join([x for x in runtime.module["assoc"].keys()])
     else:
         a = []
         for x in args:
-            if x in runtime._mod["assoc"]:
+            if x in runtime.module["assoc"]:
                 a.append(x)
             else:
-                runtime._print.error(runtime._locale.message(runtime, "io.github.kovalit31.nbconf.mod.core.lsmod.mod_not_found").format(module=x)) # Error
-    runtime._print.info(f"Imported modules: {a}")
+                runtime.print.error(runtime._locale.message(runtime, "io.github.kovalit31.nbconf.mod.core.lsmod.mod_not_found").format(module=x)) # Error
+    runtime.print.info(f"Imported modules: {a}")
     return _Ok(a)
 
 @_root.lib.functions.api.can_disable("disable_ext_rmmod")
 def rmmod(runtime, args):
     for x in args:
-        if x in runtime._mod["assoc"]:
-            mod = runtime._mod["assoc"][x]
-            for y in runtime._mod["func"][runtime._mod["assoc"][x]]:
+        if x in runtime.module["assoc"]:
+            mod = runtime.module["assoc"][x]
+            for y in runtime.module["func"][runtime.module["assoc"][x]]:
                 b = runtime._cmd_reg.pop(y, None)
                 del(b)
-            runtime._mod["assoc"].pop(x, None)
+            runtime.module["assoc"].pop(x, None)
             _root.lib.functions.module.unimport_mod_file(mod, x)
     return _Ok()
 
