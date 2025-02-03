@@ -117,17 +117,17 @@ def jit(runtime, cmd):
                 _data = tok.value[1:-1]
                 _ret = None
                 if len(_data) > 4 and _data[::len(_data)-1] == "()":
-                    runtime._print.debug(f"Inline command detected at {tok.column}")
+                    runtime.print.debug(f"Inline command detected at {tok.column}")
                     run(runtime, _data[1:-1])
-                    _ret = runtime._variables["<<"]
-                    runtime._print.debug(str(_ret))
+                    _ret = runtime.exported_var["<<"]
+                    runtime.print.debug(str(_ret))
                 else:
                     if len(_data) > 4 and _data[::len(_data)-1] == "{}":
                         _data = _data[1:-1]
                     try:
-                        _ret = runtime._variables[_data]
+                        _ret = runtime.exported_var[_data]
                     except KeyError:
-                        runtime._print.debug(f"May be incorrect: {_data} variable returned None")
+                        runtime.print.debug(f"May be incorrect: {_data} variable returned None")
                         pass
             if not join:
                 if len(ret[ppos][-1].strip()) > 0:

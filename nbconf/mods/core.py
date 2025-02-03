@@ -15,10 +15,8 @@ def _jmp_mutate(self, runtime, additional):
         return _root.lib.struct.Result.Err("jmp_mutate can't be used without Result data")
     _i = cur + 1
     suf = "pos" if result.is_ok() else "neg"
-    runtime.print.debug(suf)
     # suf jump, then relative suf jump, then normal jump, then normal relative jump
     if f"jmp_{suf}" in self._mutate_vars:
-        runtime.print.debug("Works!")
         _i = self._mutate_vars[f"jmp_{suf}"]
     elif f"jmp_r{suf}" in self._mutate_vars:
         _i += self._mutate_vars[f"jmp_r{suf}"]
@@ -92,10 +90,10 @@ def hello(runtime, args):
 def system_exec(runtime, args):
     runtime.print.debug(args)
     a = subprocess.run(args, capture_output=True)
-    runtime._print.info(a.stdout.decode())
+    runtime.print.info(a.stdout.decode())
     if a.stderr:
-        runtime._print.error("While running command expected next errors")
-        runtime._print.print(a.stderr.decode(), level="c")
+        runtime.print.error("While running command expected next errors")
+        runtime.print.print(a.stderr.decode(), level="c")
     return _Ok(a.stdout)
 
 @_root.lib.functions.api.can_disable("disable_exec", "disable_shell")
@@ -107,7 +105,7 @@ def shell(runtime, args):
         elif a == "":
             continue
         else:
-            runtime._print.info(subprocess.run([a], shell=True, text=True).stdout)
+            runtime.print.info(subprocess.run([a], shell=True, text=True).stdout)
 
 # ------------- Modules -------------- #
 
@@ -118,7 +116,7 @@ def source(runtime, args):
 def insmod(runtime, args):
     for x in args:
         if os.path.exists(x):
-            runtime._import_mod(_root.lib.functions.runtime.get_relroot(_root.var.const.core.mod_import.default_mods, os.path.dirname(x)), x)
+            runtime.importer._import_module(runtime, _root.lib.functions.runtime.get_relroot(_root.var.const.core.mod_import.default_mods, os.path.dirname(x)), x)
     return _Ok()
 
 
@@ -151,7 +149,7 @@ def rmmod(runtime, args):
         if x in runtime.module["assoc"]:
             mod = runtime.module["assoc"][x]
             for y in runtime.module["func"][runtime.module["assoc"][x]]:
-                b = runtime._cmd_reg.pop(y, None)
+                b = runtime.command_registry.pop(y, None)
                 del(b)
             runtime.module["assoc"].pop(x, None)
             _root.lib.functions.module.unimport_mod_file(mod, x)
@@ -182,7 +180,7 @@ __MUTATE = {
 __EXPORTABLE = {
     "other": {
         "author": "Kovalit31",
-        "version": "0.0.1-b"
+        "version": "0.0.2-b"
     },
     "locale": [
         "lang/c.po"
